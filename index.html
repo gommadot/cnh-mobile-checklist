@@ -43,13 +43,13 @@
       }
       .menu-btn:active { transform: scale(0.96); }
       .toolbar {
-        display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 12px;
+        display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 8px 10px;
         background: var(--white); border-bottom: 1px solid var(--grey-line);
         position: sticky; top: 70px; z-index: 40;
       }
       .toolbar input[type="search"], .toolbar select {
-        width: 100%; padding: 10px 12px; border: 1px solid var(--grey-line);
-        border-radius: 10px; font-size: 14px; background: var(--white); color: var(--ink);
+        width: 100%; padding: 9px 10px; border: 1px solid var(--grey-line);
+        border-radius: 8px; font-size: 14px; background: var(--white); color: var(--ink);
         -webkit-appearance: none; appearance: none;
       }
       .toolbar input[type="search"]:focus, .toolbar select:focus {
@@ -58,20 +58,20 @@
       .toolbar select { font-weight: 600; }
       .stats {
         display: grid; grid-template-columns: repeat(4, 1fr);
-        gap: 6px; padding: 10px 12px; background: var(--white);
+        gap: 5px; padding: 7px 10px; background: var(--white);
       }
       .stat {
-        text-align: center; padding: 8px 4px; border-radius: 10px;
+        text-align: center; padding: 6px 4px; border-radius: 8px;
         background: var(--soft); border: 1px solid var(--grey-line);
       }
-      .stat .num { font-size: 22px; font-weight: 800; color: var(--ink); line-height: 1; }
-      .stat .lbl { font-size: 10.5px; color: var(--grey); margin-top: 4px; font-weight: 600; letter-spacing: 0.5px; }
+      .stat .num { font-size: 19px; font-weight: 800; color: var(--ink); line-height: 1; }
+      .stat .lbl { font-size: 9.5px; color: var(--grey); margin-top: 3px; font-weight: 700; letter-spacing: 0.3px; }
       .stat.done .num { color: var(--green); }
       .stat.todo .num { color: var(--red); }
       .stat.priority .num { color: var(--amber); }
-      main { flex: 1; padding: 8px 10px 100px; }
+      main { flex: 1; padding: 6px 8px 88px; }
       .card {
-        background: var(--white); border-radius: 14px; padding: 14px; margin-bottom: 10px;
+        background: var(--white); border-radius: 9px; padding: 9px 10px; margin-bottom: 7px;
         box-shadow: 0 1px 3px rgba(15,23,42,0.06); border: 1px solid var(--grey-line);
         transition: transform 120ms ease;
       }
@@ -80,65 +80,66 @@
         border-color: var(--green);
       }
       .card.priority {
-        border: 3px solid #F59E0B;
-        box-shadow: 0 3px 12px rgba(245,158,11,0.22);
+        border: 2px solid #F59E0B;
+        box-shadow: 0 2px 8px rgba(245,158,11,0.16);
       }
       .card.priority:not(.complete) {
         background: linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 55%);
       }
-      .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-      .status-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+      .card-head { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; flex-wrap: nowrap; }
+      .status-row { display: flex; gap: 6px; align-items: center; justify-content: space-between; margin-bottom: 7px; }
       .priority-badge {
         display: inline-flex; align-items: center; gap: 6px;
-        padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 900;
-        letter-spacing: 0.5px; text-transform: uppercase;
+        padding: 4px 7px; border-radius: 6px; font-size: 10px; font-weight: 900;
+        letter-spacing: 0.25px; text-transform: uppercase; white-space: nowrap;
       }
-      .priority-badge.high { background: var(--amber-bg); color: var(--amber); border: 2px solid #F59E0B; }
+      .priority-badge.high { background: var(--amber-bg); color: var(--amber); border: 1px solid #F59E0B; }
       .priority-badge.normal { background: var(--blue-bg); color: var(--blue); border: 1px solid #7DD3FC; }
       .state-badge {
-        display: inline-flex; align-items: center; max-width: 100%;
-        padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 900;
-        letter-spacing: 0.3px; text-transform: uppercase; background: #E2E8F0;
-        color: var(--ink-soft); border: 1px solid #94A3B8; overflow-wrap: anywhere;
+        display: inline-flex; align-items: center; max-width: 62%;
+        padding: 4px 7px; border-radius: 6px; font-size: 10px; font-weight: 900;
+        letter-spacing: 0.2px; text-transform: uppercase; background: #E2E8F0;
+        color: var(--ink-soft); border: 1px solid #94A3B8; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap;
       }
       .state-badge.empty { color: var(--grey); background: var(--soft); border-style: dashed; }
       .pline {
-        display: inline-block; padding: 6px 14px; background: var(--red); color: var(--white);
-        font-size: 13px; font-weight: 800; border-radius: 20px; letter-spacing: 1px; flex-shrink: 0;
+        display: inline-block; padding: 5px 9px; background: var(--red); color: var(--white);
+        font-size: 11px; font-weight: 900; border-radius: 7px; letter-spacing: 0.6px; flex-shrink: 0;
       }
       .card.complete .pline { background: var(--green); }
       .id-block { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
-      .id-label { font-size: 10px; font-weight: 700; color: var(--grey); letter-spacing: 1.2px; }
+      .id-label { font-size: 9px; font-weight: 800; color: var(--grey); letter-spacing: 0.8px; }
       .id-value {
         font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
-        font-size: 26px; color: var(--ink); font-weight: 900; letter-spacing: 1px;
+        font-size: 21px; color: var(--ink); font-weight: 900; letter-spacing: 0.3px;
         line-height: 1.05; word-break: break-all;
       }
       .card.complete .id-value { color: var(--green); }
       .id-secondary {
-        font-size: 11px; color: var(--grey); font-weight: 600;
+        font-size: 10px; color: var(--grey); font-weight: 700;
         font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; margin-top: 2px;
       }
-      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 6px; }
       .check {
         display: flex; align-items: center; justify-content: center; gap: 8px;
-        padding: 12px 8px; border-radius: 12px; border: 2px solid var(--grey-line);
+        padding: 8px 7px; border-radius: 8px; border: 1px solid var(--grey-line);
         background: var(--white); cursor: pointer; user-select: none;
-        transition: all 150ms ease; min-height: 56px;
+        transition: all 150ms ease; min-height: 42px;
       }
       .check .icon {
-        width: 24px; height: 24px; border-radius: 50%;
-        border: 2.5px solid var(--grey); background: var(--white);
+        width: 19px; height: 19px; border-radius: 50%;
+        border: 2px solid var(--grey); background: var(--white);
         flex-shrink: 0; display: flex; align-items: center; justify-content: center;
         transition: all 150ms ease;
       }
       .check .icon::after {
-        content: ""; width: 12px; height: 6px;
-        border-left: 3px solid var(--white); border-bottom: 3px solid var(--white);
+        content: ""; width: 10px; height: 5px;
+        border-left: 2.5px solid var(--white); border-bottom: 2.5px solid var(--white);
         transform: rotate(-45deg) scale(0); margin-bottom: 3px;
         transition: transform 150ms ease;
       }
-      .check .label { font-size: 13px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.3px; }
+      .check .label { font-size: 12px; font-weight: 800; color: var(--ink-soft); letter-spacing: 0.1px; }
       .check.active {
         background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
         border-color: var(--green);
@@ -148,11 +149,11 @@
       .check.active .label { color: var(--white); }
       .check:active { transform: scale(0.97); }
       .note {
-        margin-top: 10px; padding: 8px 10px; background: var(--soft);
-        border-radius: 8px; font-size: 12px; color: var(--ink-soft);
+        margin-top: 7px; padding: 6px 8px; background: var(--soft);
+        border-radius: 7px; font-size: 11px; color: var(--ink-soft);
         border-left: 3px solid var(--red);
       }
-      .ts { margin-top: 6px; font-size: 10.5px; color: var(--grey); text-align: right; }
+      .ts { margin-top: 5px; font-size: 9.5px; color: var(--grey); text-align: right; }
       .empty {
         margin: 40px 20px; padding: 32px 20px; text-align: center;
         background: var(--white); border-radius: 16px; border: 2px dashed var(--grey-line);
@@ -540,8 +541,8 @@
           return `
             <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""}" data-id="${it.id}">
               <div class="status-row">
-                <span class="priority-badge ${priority ? "high" : "normal"}">${priority ? "PRIORITARIA" : "STANDARD"}</span>
                 <span class="state-badge ${state ? "" : "empty"}">${escapeHtml(state || "STATO N/D")}</span>
+                <span class="priority-badge ${priority ? "high" : "normal"}">${priority ? "PRIORITARIA" : "STANDARD"}</span>
               </div>
               <div class="card-head">
                 <span class="pline">${it.pline || "—"}</span>
