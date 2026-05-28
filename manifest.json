@@ -1,18 +1,11 @@
 {
-  "name": "Verniciature e Pre-shipment",
+  "name": "VERNICIATURE E PRE-SHIPMENT",
   "short_name": "Checklist",
-  "id": "/",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#C00000",
   "theme_color": "#C00000",
   "description": "Checklist macchine prioritarie - CNH Plant LE01",
-  "lang": "it",
-  "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
+  "lang": "it"
 }
