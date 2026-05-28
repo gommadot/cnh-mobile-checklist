@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#C00000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Checklist" />
+    <title>Verniciatura e Pre-shipment</title>
+    <link rel="manifest" href="/manifest.json" />
+    <style>
+      :root {
+        --red: #C00000; --red-dark: #8B0000; --ink: #0F172A; --ink-soft: #334055;
+        --grey: #64748B; --grey-line: #CBD5E1; --soft: #F1F5F9; --white: #FFFFFF;
+        --green: #166534; --green-bg: #DCFCE7; --amber: #92400E; --amber-bg: #FEF3C7;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
+        margin: 0; padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--soft); color: var(--ink);
+        -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: contain;
+      }
+      .app { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+      header {
+        position: sticky; top: 0; z-index: 50;
+        background: var(--red); color: var(--white);
+        padding: env(safe-area-inset-top) 16px 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      }
+      header h1 { margin: 12px 0 0; font-size: 18px; font-weight: 700; letter-spacing: 0.3px; }
+      header .subtitle { margin-top: 2px; font-size: 12px; opacity: 0.85; }
+      .toolbar {
+        display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 12px;
+        background: var(--white); border-bottom: 1px solid var(--grey-line);
+        position: sticky; top: 70px; z-index: 40;
+      }
+      .toolbar input[type="search"], .toolbar select {
+        width: 100%; padding: 10px 12px; border: 1px solid var(--grey-line);
+        border-radius: 10px; font-size: 14px; background: var(--white); color: var(--ink);
+        -webkit-appearance: none; appearance: none;
+      }
+      .toolbar input[type="search"]:focus, .toolbar select:focus {
+        outline: 2px solid rgba(192,0,0,0.35); border-color: var(--red);
+      }
+      .toolbar select { font-weight: 600; }
+      .stats {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 6px; padding: 10px 12px; background: var(--white);
+      }
+      .stat {
+        text-align: center; padding: 8px 4px; border-radius: 10px;
+        background: var(--soft); border: 1px solid var(--grey-line);
+      }
+      .stat .num { font-size: 22px; font-weight: 800; color: var(--ink); line-height: 1; }
+      .stat .lbl { font-size: 10.5px; color: var(--grey); margin-top: 4px; font-weight: 600; letter-spacing: 0.5px; }
+      .stat.done .num { color: var(--green); }
+      .stat.todo .num { color: var(--red); }
+      main { flex: 1; padding: 8px 10px 100px; }
+      .card {
+        background: var(--white); border-radius: 14px; padding: 14px; margin-bottom: 10px;
+        box-shadow: 0 1px 3px rgba(15,23,42,0.06); border: 1px solid var(--grey-line);
+        transition: transform 120ms ease;
+      }
+      .card.complete {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border-color: var(--green);
+      }
+      .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+      .pline {
+        display: inline-block; padding: 6px 14px; background: var(--red); color: var(--white);
+        font-size: 13px; font-weight: 800; border-radius: 20px; letter-spacing: 1px; flex-shrink: 0;
+      }
+      .card.complete .pline { background: var(--green); }
+      .id-block { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+      .id-label { font-size: 10px; font-weight: 700; color: var(--grey); letter-spacing: 1.2px; }
+      .id-value {
+        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+        font-size: 26px; color: var(--ink); font-weight: 900; letter-spacing: 1px;
+        line-height: 1.05; word-break: break-all;
+      }
+      .card.complete .id-value { color: var(--green); }
+      .id-secondary {
+        font-size: 11px; color: var(--grey); font-weight: 600;
+        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; margin-top: 2px;
+      }
+      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+      .check {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 12px 8px; border-radius: 12px; border: 2px solid var(--grey-line);
+        background: var(--white); cursor: pointer; user-select: none;
+        transition: all 150ms ease; min-height: 56px;
+      }
+      .check .icon {
+        width: 24px; height: 24px; border-radius: 50%;
+        border: 2.5px solid var(--grey); background: var(--white);
+        flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+        transition: all 150ms ease;
+      }
+      .check .icon::after {
+        content: ""; width: 12px; height: 6px;
+        border-left: 3px solid var(--white); border-bottom: 3px solid var(--white);
+        transform: rotate(-45deg) scale(0); margin-bottom: 3px;
+        transition: transform 150ms ease;
+      }
+      .check .label { font-size: 13px; font-weight: 700; color: var(--ink-soft); letter-spacing: 0.3px; }
+      .check.active {
+        background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+        border-color: var(--green);
+      }
+      .check.active .icon { border-color: var(--white); background: transparent; }
+      .check.active .icon::after { transform: rotate(-45deg) scale(1); }
+      .check.active .label { color: var(--white); }
+      .check:active { transform: scale(0.97); }
+      .note {
+        margin-top: 10px; padding: 8px 10px; background: var(--soft);
+        border-radius: 8px; font-size: 12px; color: var(--ink-soft);
+        border-left: 3px solid var(--red);
+      }
+      .ts { margin-top: 6px; font-size: 10.5px; color: var(--grey); text-align: right; }
+      .empty {
+        margin: 40px 20px; padding: 32px 20px; text-align: center;
+        background: var(--white); border-radius: 16px; border: 2px dashed var(--grey-line);
+      }
+      .empty .ico { font-size: 48px; }
+      .empty h3 { margin: 8px 0 6px; color: var(--ink); font-size: 18px; }
+      .empty p { color: var(--grey); font-size: 13px; margin: 0; }
+      .footer-bar {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        background: var(--white); border-top: 1px solid var(--grey-line);
+        padding: 10px 14px env(safe-area-inset-bottom);
+        display: flex; justify-content: space-between; align-items: center; z-index: 40;
+      }
+      .footer-bar .user { font-size: 12px; color: var(--grey); }
+      .footer-bar .user b { color: var(--ink); }
+      .refresh-btn {
+        background: var(--red); color: var(--white); border: none;
+        padding: 10px 18px; border-radius: 24px; font-weight: 700; font-size: 13px;
+        cursor: pointer; box-shadow: 0 2px 8px rgba(192,0,0,0.3);
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .refresh-btn:active { transform: scale(0.96); }
+      .refresh-btn.spinning .arr { animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .toast {
+        position: fixed; bottom: 80px; left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: var(--ink); color: var(--white);
+        padding: 12px 20px; border-radius: 24px; font-size: 13px; font-weight: 600;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        transition: transform 250ms ease; z-index: 60; max-width: 90%;
+      }
+      .toast.show { transform: translateX(-50%) translateY(0); }
+      .toast.error { background: var(--red); }
+      .modal-backdrop {
+        position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(2px); display: none;
+        align-items: center; justify-content: center; z-index: 100;
+        padding: 20px; animation: fadeIn 150ms ease;
+      }
+      .modal-backdrop.show { display: flex; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .modal {
+        background: var(--white); border-radius: 18px; max-width: 380px; width: 100%;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.35); overflow: hidden;
+        animation: popUp 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes popUp { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .modal-icon {
+        display: flex; align-items: center; justify-content: center;
+        margin: 24px auto 12px; width: 64px; height: 64px;
+        border-radius: 50%; background: var(--soft);
+      }
+      .modal-icon.activate { background: var(--green-bg); }
+      .modal-icon.deactivate { background: #fef3c7; }
+      .modal-icon svg { width: 36px; height: 36px; }
+      .modal-icon.activate svg { color: var(--green); }
+      .modal-icon.deactivate svg { color: var(--amber); }
+      .modal-title {
+        text-align: center; font-size: 13px; font-weight: 800; color: var(--grey);
+        text-transform: uppercase; letter-spacing: 1px; padding: 0 24px;
+      }
+      .modal-action {
+        text-align: center; font-size: 22px; font-weight: 900;
+        margin: 6px 0 10px; padding: 0 24px; color: var(--ink);
+      }
+      .modal-action.activate { color: var(--green); }
+      .modal-action.deactivate { color: var(--amber); }
+      .modal-target {
+        text-align: center; padding: 12px 18px; margin: 0 24px 20px;
+        background: var(--soft); border-radius: 10px;
+        border-left: 4px solid var(--red);
+      }
+      .modal-target .lbl { font-size: 10px; color: var(--grey); font-weight: 700; letter-spacing: 1px; }
+      .modal-target .val {
+        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+        font-size: 22px; font-weight: 900; color: var(--ink);
+        word-break: break-all; margin-top: 2px;
+      }
+      .modal-actions {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 18px 18px;
+      }
+      .btn {
+        padding: 16px 12px; border-radius: 12px; border: none;
+        font-size: 15px; font-weight: 800; letter-spacing: 0.5px; cursor: pointer;
+        transition: transform 100ms ease, box-shadow 150ms ease;
+        min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 6px;
+      }
+      .btn:active { transform: scale(0.96); }
+      .btn-cancel { background: var(--red); color: var(--white); box-shadow: 0 2px 8px rgba(192,0,0,0.3); }
+      .btn-cancel:active { background: var(--red-dark); }
+      .btn-ok { background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: var(--white); box-shadow: 0 2px 8px rgba(22,101,52,0.3); }
+      .btn-ok:active { background: var(--green); }
+      @media (min-width: 600px) {
+        main { padding-left: 24px; padding-right: 24px; }
+        .check-row { gap: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>Checklist Operatore</h1>
+        <div class="subtitle">Macchine prioritarie - Plant LE01</div>
+      </header>
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Cerca VAN, TELAIO, PLINE..." />
+        <select id="plineFilter" aria-label="Filtro PLINE">
+          <option value="">Tutte le PLINE</option>
+          <option value="TLB">TLB</option>
+          <option value="CWL">CWL</option>
+          <option value="WLM">WLM</option>
+          <option value="WLL">WLL</option>
+          <option value="GRD">GRD</option>
+          <option value="TLH">TLH</option>
+          <option value="EPICO">EPICO</option>
+        </select>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
+        <div class="stat todo"><div class="num" id="statTodo">0</div><div class="lbl">DA FARE</div></div>
+        <div class="stat done"><div class="num" id="statDone">0</div><div class="lbl">COMPLETI</div></div>
+      </div>
+      <main id="list"></main>
+      <div class="footer-bar">
+        <div class="user">Operatore: <b id="opName">—</b></div>
+        <button class="refresh-btn" id="refreshBtn" type="button">
+          <span class="arr">&#x21bb;</span> Aggiorna
+        </button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal-backdrop" id="confirmModal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <div class="modal-icon" id="confirmIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="modal-title" id="confirmTitle">Conferma operazione</div>
+        <div class="modal-action" id="confirmAction">VERNICIATO</div>
+        <div class="modal-target">
+          <div class="lbl" id="confirmTargetLabel">TELAIO</div>
+          <div class="val" id="confirmTargetValue">—</div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-cancel" id="confirmCancelBtn" type="button">ANNULLA</button>
+          <button class="btn btn-ok" id="confirmOkBtn" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      // ==== CONFIG SUPABASE ====================================================
+      const SUPABASE_URL = "https://hvzhoggvicevcoenicnf.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2emhvZ2d2aWNldmNvZW5pY25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Nzg5MjIsImV4cCI6MjA5NTQ1NDkyMn0.--C94gsSg9RG7YN4ftTY0z-gdXNON7gqJWrqkY-5Jt4";
+      const TABLE = "painting_preshipment_jobs";
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // ==== OPERATORE ===========================================================
+      const OP_KEY = "cnh-mobile-op-name";
+      let opName = localStorage.getItem(OP_KEY) || "";
+      if (!opName) {
+        opName = (prompt("Inserisci il tuo nome o ID operatore:") || "operatore").trim();
+        localStorage.setItem(OP_KEY, opName);
+      }
+      document.getElementById("opName").textContent = opName;
+
+      const els = {
+        list: document.getElementById("list"),
+        search: document.getElementById("search"),
+        pline: document.getElementById("plineFilter"),
+        refresh: document.getElementById("refreshBtn"),
+        statTot: document.getElementById("statTot"),
+        statTodo: document.getElementById("statTodo"),
+        statDone: document.getElementById("statDone"),
+        toast: document.getElementById("toast"),
+      };
+      let items = [];
+
+      function showToast(message, isError) {
+        els.toast.textContent = message;
+        els.toast.classList.toggle("error", !!isError);
+        els.toast.classList.add("show");
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => els.toast.classList.remove("show"), 2400);
+      }
+      function formatTime(iso) {
+        if (!iso) return "";
+        try {
+          const d = new Date(iso);
+          const isToday = d.toDateString() === new Date().toDateString();
+          const time = d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+          if (isToday) return `oggi ${time}`;
+          return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }) + " " + time;
+        } catch (e) { return ""; }
+      }
+
+      function sortItems(arr) {
+        return arr.slice().sort((a, b) => {
+          const da = a.preshipment ? 2 : (a.verniciato ? 1 : 0);
+          const db = b.preshipment ? 2 : (b.verniciato ? 1 : 0);
+          if (da !== db) return da - db;
+          const pa = String(a.pline || "");
+          const pb = String(b.pline || "");
+          if (pa !== pb) return pa.localeCompare(pb);
+          return String(a.van || "").localeCompare(String(b.van || ""));
+        });
+      }
+
+      function renderList() {
+        const q = (els.search.value || "").trim().toLowerCase();
+        const plineSel = els.pline.value;
+        const filtered = items.filter(it => {
+          if (plineSel && (it.pline || "").toUpperCase() !== plineSel) return false;
+          if (q) {
+            const hay = `${it.pline||""} ${it.van||""} ${it.telaio||""} ${it.note||""}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+        els.statTot.textContent = items.length;
+        els.statTodo.textContent = items.filter(i => !(i.verniciato && i.preshipment)).length;
+        els.statDone.textContent = items.filter(i => i.verniciato && i.preshipment).length;
+        if (filtered.length === 0) {
+          els.list.innerHTML = `
+            <div class="empty">
+              <div class="ico">${items.length === 0 ? "📋" : "🔍"}</div>
+              <h3>${items.length === 0 ? "Nessuna macchina in lista" : "Nessun risultato"}</h3>
+              <p>${items.length === 0 ? "L'ufficio non ha ancora inserito macchine prioritarie." : "Modifica filtri o ricerca."}</p>
+            </div>`;
+          return;
+        }
+        els.list.innerHTML = filtered.map(it => {
+          const complete = it.verniciato && it.preshipment;
+          const vTs = it.verniciato_at ? formatTime(it.verniciato_at) : "";
+          const pTs = it.preshipment_at ? formatTime(it.preshipment_at) : "";
+          const tsLine = (vTs || pTs)
+            ? `<div class="ts">${vTs ? "Vern. " + vTs + (it.verniciato_by ? " · " + it.verniciato_by : "") : ""}${vTs && pTs ? " &nbsp;|&nbsp; " : ""}${pTs ? "Pre-ship. " + pTs + (it.preshipment_by ? " · " + it.preshipment_by : "") : ""}</div>`
+            : "";
+          const telaio = String(it.telaio || "").trim();
+          const van = String(it.van || "").trim();
+          const useTelaio = !!telaio && telaio !== "0";
+          const idLabel = useTelaio ? "TELAIO" : (van ? "VAN" : "");
+          const idValue = useTelaio ? telaio : (van || "—");
+          const secondary = useTelaio && van ? `VAN ${van}` : "";
+          return `
+            <div class="card ${complete ? "complete" : ""}" data-id="${it.id}">
+              <div class="card-head">
+                <span class="pline">${it.pline || "—"}</span>
+                <div class="id-block">
+                  ${idLabel ? `<div class="id-label">${idLabel}</div>` : ""}
+                  <div class="id-value">${idValue}</div>
+                  ${secondary ? `<div class="id-secondary">${secondary}</div>` : ""}
+                </div>
+              </div>
+              <div class="check-row">
+                <div class="check ${it.verniciato ? "active" : ""}" data-action="verniciato">
+                  <span class="icon"></span><span class="label">VERNICIATO</span>
+                </div>
+                <div class="check ${it.preshipment ? "active" : ""}" data-action="preshipment">
+                  <span class="icon"></span><span class="label">PRE-SHIPMENT</span>
+                </div>
+              </div>
+              ${it.note ? `<div class="note">${it.note}</div>` : ""}
+              ${tsLine}
+            </div>`;
+        }).join("");
+      }
+
+      async function loadList() {
+        els.refresh.classList.add("spinning");
+        try {
+          const { data, error } = await sb.from(TABLE).select("*");
+          if (error) throw error;
+          items = sortItems(data || []);
+          renderList();
+        } catch (e) {
+          console.error(e);
+          showToast("Errore di rete: " + (e.message || ""), true);
+        } finally {
+          setTimeout(() => els.refresh.classList.remove("spinning"), 300);
+        }
+      }
+
+      async function toggleAction(id, action, newValue) {
+        const now = new Date().toISOString();
+        const body = {
+          [action]: newValue,
+          [`${action}_at`]: newValue ? now : null,
+          [`${action}_by`]: newValue ? opName : null,
+          updated_at: now,
+        };
+        try {
+          const { data, error } = await sb.from(TABLE).update(body).eq("id", id).select().single();
+          if (error) throw error;
+          const idx = items.findIndex(i => i.id === id);
+          if (idx >= 0) items[idx] = data;
+          items = sortItems(items);
+          renderList();
+          showToast(newValue ? "Spunta salvata" : "Spunta rimossa");
+        } catch (e) {
+          console.error(e);
+          showToast("Errore di rete: " + (e.message || ""), true);
+        }
+      }
+
+      // === Realtime ============================================================
+      function scheduleRefresh() {
+        clearTimeout(scheduleRefresh._t);
+        scheduleRefresh._t = setTimeout(loadList, 350);
+      }
+      try {
+        sb.channel("painting-preshipment-jobs")
+          .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, scheduleRefresh)
+          .subscribe();
+      } catch (e) { console.warn("Realtime KO:", e); }
+
+      // === Modal conferma ======================================================
+      const confirmModal = document.getElementById("confirmModal");
+      const confirmIcon = document.getElementById("confirmIcon");
+      const confirmTitle = document.getElementById("confirmTitle");
+      const confirmAction = document.getElementById("confirmAction");
+      const confirmTargetLabel = document.getElementById("confirmTargetLabel");
+      const confirmTargetValue = document.getElementById("confirmTargetValue");
+      const confirmOkBtn = document.getElementById("confirmOkBtn");
+      const confirmCancelBtn = document.getElementById("confirmCancelBtn");
+      let pendingAction = null;
+
+      function openConfirmModal(opts) {
+        const isActivate = !opts.isActive;
+        confirmTitle.textContent = isActivate ? "Confermi operazione?" : "Vuoi rimuovere la spunta?";
+        confirmAction.textContent = opts.actionLabel;
+        confirmAction.className = "modal-action " + (isActivate ? "activate" : "deactivate");
+        confirmIcon.className = "modal-icon " + (isActivate ? "activate" : "deactivate");
+        confirmTargetLabel.textContent = opts.identLabel;
+        confirmTargetValue.textContent = opts.identValue;
+        pendingAction = opts.onConfirm;
+        confirmModal.classList.add("show");
+      }
+      function closeConfirmModal() {
+        confirmModal.classList.remove("show");
+        pendingAction = null;
+      }
+      confirmOkBtn.addEventListener("click", () => {
+        const fn = pendingAction;
+        closeConfirmModal();
+        if (typeof fn === "function") fn();
+      });
+      confirmCancelBtn.addEventListener("click", closeConfirmModal);
+      confirmModal.addEventListener("click", (e) => { if (e.target === confirmModal) closeConfirmModal(); });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && confirmModal.classList.contains("show")) closeConfirmModal();
+      });
+
+      // === Click delegation ====================================================
+      els.list.addEventListener("click", (e) => {
+        const check = e.target.closest(".check");
+        if (!check) return;
+        const card = check.closest(".card");
+        if (!card) return;
+        const id = parseInt(card.dataset.id, 10);
+        const action = check.dataset.action;
+        const isActive = check.classList.contains("active");
+        const item = items.find(i => i.id === id);
+        const actionLabel = action === "verniciato" ? "VERNICIATO" : "PRE-SHIPMENT";
+        const telaio = String(item?.telaio || "").trim();
+        const hasTelaio = telaio && telaio !== "0";
+        const identLabel = hasTelaio ? "TELAIO" : "VAN";
+        const identValue = hasTelaio ? telaio : (item?.van || "—");
+        openConfirmModal({
+          actionLabel, identLabel, identValue, isActive,
+          onConfirm: () => toggleAction(id, action, !isActive),
+        });
+      });
+      els.search.addEventListener("input", renderList);
+      els.pline.addEventListener("change", renderList);
+      els.refresh.addEventListener("click", loadList);
+      document.getElementById("opName").addEventListener("click", () => {
+        const newName = prompt("Cambia operatore:", opName);
+        if (newName && newName.trim()) {
+          opName = newName.trim();
+          localStorage.setItem(OP_KEY, opName);
+          document.getElementById("opName").textContent = opName;
+        }
+      });
+
+      // === Init + polling fallback =============================================
+      loadList();
+      setInterval(loadList, 30000);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) loadList();
+      });
+    </script>
+  </body>
+</html>
