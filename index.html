@@ -94,26 +94,10 @@
         background: #ECFDF5;
         border-left-color: var(--green);
       }
-      .card-top {
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 8px; margin-bottom: 5px;
-      }
-      .state-text {
-        font-size: 11px; font-weight: 900; color: var(--ink-soft);
-        text-transform: uppercase; letter-spacing: 0.25px;
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        min-width: 0;
-      }
-      .state-text.empty { color: var(--grey); font-weight: 700; }
-      .prio-label {
-        display: inline-flex; align-items: center; justify-content: center;
-        padding: 2px 6px; border-radius: 4px; background: #F59E0B;
-        color: #FFFFFF; font-size: 9.5px; font-weight: 900;
-        letter-spacing: 0.25px; flex-shrink: 0;
-      }
+      /* Riga 1: PLINE + ID + stato a destra, tutto su una sola riga compatta */
       .card-head {
-        display: grid; grid-template-columns: auto 1fr; align-items: center;
-        gap: 8px; min-width: 0;
+        display: flex; align-items: center; gap: 8px;
+        flex-wrap: nowrap; min-width: 0;
       }
       .pline {
         display: inline-flex; align-items: center; gap: 4px;
@@ -122,10 +106,15 @@
         letter-spacing: 0.4px; flex-shrink: 0; line-height: 1.2;
       }
       .card.complete .pline { background: var(--green); }
+      .priority-dot {
+        display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+        background: #F59E0B; box-shadow: 0 0 0 2px rgba(245,158,11,0.25);
+        flex-shrink: 0;
+      }
       .id-block {
         flex: 1 1 auto; min-width: 0;
-        display: grid; grid-template-columns: auto 1fr auto; align-items: baseline;
-        gap: 5px; overflow: hidden;
+        display: flex; align-items: baseline; gap: 5px; flex-wrap: nowrap;
+        overflow: hidden;
       }
       .id-tag {
         font-size: 8.5px; font-weight: 800; color: var(--grey);
@@ -136,7 +125,7 @@
       }
       .id-value {
         font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
-        font-size: 21px; color: var(--ink); font-weight: 900;
+        font-size: 17px; color: var(--ink); font-weight: 900;
         letter-spacing: 0.2px; line-height: 1.15;
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         flex: 0 1 auto; min-width: 0;
@@ -147,7 +136,16 @@
         font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
         flex-shrink: 0; white-space: nowrap;
       }
-      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 7px; }
+      .state-chip {
+        display: inline-flex; align-items: center;
+        padding: 2px 6px; border-radius: 4px; font-size: 9.5px;
+        font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase;
+        background: var(--soft); color: var(--grey); border: 1px solid var(--grey-line);
+        white-space: nowrap; max-width: 90px;
+        overflow: hidden; text-overflow: ellipsis;
+        flex-shrink: 0; line-height: 1.4;
+      }
+      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
       .check {
         display: flex; align-items: center; justify-content: center; gap: 6px;
         padding: 6px 6px; border-radius: 7px; border: 1px solid var(--grey-line);
@@ -565,22 +563,22 @@
           const idLabel = useTelaio ? "TELAIO" : (van ? "VAN" : "");
           const idValue = useTelaio ? telaio : (van || "—");
           const secondary = useTelaio && van ? `VAN ${van}` : "";
-          const stateText = `<div class="state-text ${state ? "" : "empty"}" title="${escapeHtml(state || "Stato non indicato")}">${escapeHtml(state || "Stato non indicato")}</div>`;
-          const prioLabel = priority ? `<span class="prio-label" title="Prioritaria">PRIO</span>` : "";
+          const stateChip = state
+            ? `<span class="state-chip" title="${escapeHtml(state)}">${escapeHtml(state)}</span>`
+            : "";
+          const prioDot = priority ? `<span class="priority-dot" title="Prioritaria"></span>` : "";
           const secondaryInline = secondary ? `<span class="id-secondary">${secondary}</span>` : "";
           return `
             <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""}" data-id="${it.id}">
-              <div class="card-top">
-                ${stateText}
-                ${prioLabel}
-              </div>
               <div class="card-head">
                 <span class="pline">${it.pline || "—"}</span>
+                ${prioDot}
                 <div class="id-block">
                   ${idLabel ? `<span class="id-tag">${idLabel}</span>` : ""}
                   <span class="id-value">${idValue}</span>
                   ${secondaryInline}
                 </div>
+                ${stateChip}
               </div>
               <div class="check-row">
                 <div class="check ${it.verniciato ? "active" : ""}" data-action="verniciato">
