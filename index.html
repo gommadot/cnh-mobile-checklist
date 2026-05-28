@@ -69,77 +69,102 @@
       .stat.done .num { color: var(--green); }
       .stat.todo .num { color: var(--red); }
       .stat.priority .num { color: var(--amber); }
-      main { flex: 1; padding: 6px 8px 88px; }
+      main { flex: 1; padding: 5px 6px 84px; }
       .card {
-        background: var(--white); border-radius: 9px; padding: 9px 10px; margin-bottom: 7px;
-        box-shadow: 0 1px 3px rgba(15,23,42,0.06); border: 1px solid var(--grey-line);
-        transition: transform 120ms ease;
+        background: var(--white); border-radius: 8px;
+        padding: 7px 9px 7px 10px; margin-bottom: 5px;
+        box-shadow: 0 1px 2px rgba(15,23,42,0.05);
+        border: 1px solid var(--grey-line);
+        border-left: 4px solid transparent;
+        transition: transform 100ms ease;
+        position: relative;
       }
       .card.complete {
-        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-        border-color: var(--green);
+        background: #F0FDF4;
+        border-color: #BBF7D0;
+        border-left-color: var(--green);
       }
       .card.priority {
-        border: 2px solid #F59E0B;
-        box-shadow: 0 2px 8px rgba(245,158,11,0.16);
+        background: #FFFBEB;
+        border-color: #FDE68A;
+        border-left-color: #F59E0B;
+        border-left-width: 5px;
       }
-      .card.priority:not(.complete) {
-        background: linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 55%);
+      .card.priority.complete {
+        background: #ECFDF5;
+        border-left-color: var(--green);
       }
-      .card-head { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; flex-wrap: nowrap; }
-      .status-row { display: flex; gap: 6px; align-items: center; justify-content: space-between; margin-bottom: 7px; }
-      .priority-badge {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 4px 7px; border-radius: 6px; font-size: 10px; font-weight: 900;
-        letter-spacing: 0.25px; text-transform: uppercase; white-space: nowrap;
+      /* Riga 1: PLINE + ID + stato a destra, tutto su una sola riga compatta */
+      .card-head {
+        display: flex; align-items: center; gap: 8px;
+        flex-wrap: nowrap; min-width: 0;
       }
-      .priority-badge.high { background: var(--amber-bg); color: var(--amber); border: 1px solid #F59E0B; }
-      .priority-badge.normal { background: var(--blue-bg); color: var(--blue); border: 1px solid #7DD3FC; }
-      .state-badge {
-        display: inline-flex; align-items: center; max-width: 62%;
-        padding: 4px 7px; border-radius: 6px; font-size: 10px; font-weight: 900;
-        letter-spacing: 0.2px; text-transform: uppercase; background: #E2E8F0;
-        color: var(--ink-soft); border: 1px solid #94A3B8; overflow: hidden;
-        text-overflow: ellipsis; white-space: nowrap;
-      }
-      .state-badge.empty { color: var(--grey); background: var(--soft); border-style: dashed; }
       .pline {
-        display: inline-block; padding: 5px 9px; background: var(--red); color: var(--white);
-        font-size: 11px; font-weight: 900; border-radius: 7px; letter-spacing: 0.6px; flex-shrink: 0;
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 7px; background: var(--red); color: var(--white);
+        font-size: 11px; font-weight: 900; border-radius: 5px;
+        letter-spacing: 0.4px; flex-shrink: 0; line-height: 1.2;
       }
       .card.complete .pline { background: var(--green); }
-      .id-block { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
-      .id-label { font-size: 9px; font-weight: 800; color: var(--grey); letter-spacing: 0.8px; }
+      .priority-dot {
+        display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+        background: #F59E0B; box-shadow: 0 0 0 2px rgba(245,158,11,0.25);
+        flex-shrink: 0;
+      }
+      .id-block {
+        flex: 1 1 auto; min-width: 0;
+        display: flex; align-items: baseline; gap: 5px; flex-wrap: nowrap;
+        overflow: hidden;
+      }
+      .id-tag {
+        font-size: 8.5px; font-weight: 800; color: var(--grey);
+        letter-spacing: 0.6px; flex-shrink: 0;
+        padding: 1px 4px; border: 1px solid var(--grey-line);
+        border-radius: 3px; line-height: 1.4;
+        background: var(--white);
+      }
       .id-value {
         font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
-        font-size: 21px; color: var(--ink); font-weight: 900; letter-spacing: 0.3px;
-        line-height: 1.05; word-break: break-all;
+        font-size: 17px; color: var(--ink); font-weight: 900;
+        letter-spacing: 0.2px; line-height: 1.15;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        flex: 0 1 auto; min-width: 0;
       }
       .card.complete .id-value { color: var(--green); }
       .id-secondary {
         font-size: 10px; color: var(--grey); font-weight: 700;
-        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; margin-top: 2px;
+        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+        flex-shrink: 0; white-space: nowrap;
       }
-      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 6px; }
+      .state-chip {
+        display: inline-flex; align-items: center;
+        padding: 2px 6px; border-radius: 4px; font-size: 9.5px;
+        font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase;
+        background: var(--soft); color: var(--grey); border: 1px solid var(--grey-line);
+        white-space: nowrap; max-width: 90px;
+        overflow: hidden; text-overflow: ellipsis;
+        flex-shrink: 0; line-height: 1.4;
+      }
+      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
       .check {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        padding: 8px 7px; border-radius: 8px; border: 1px solid var(--grey-line);
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 6px 6px; border-radius: 7px; border: 1px solid var(--grey-line);
         background: var(--white); cursor: pointer; user-select: none;
-        transition: all 150ms ease; min-height: 42px;
+        transition: all 130ms ease; min-height: 34px;
       }
       .check .icon {
-        width: 19px; height: 19px; border-radius: 50%;
+        width: 16px; height: 16px; border-radius: 50%;
         border: 2px solid var(--grey); background: var(--white);
         flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-        transition: all 150ms ease;
+        transition: all 130ms ease;
       }
       .check .icon::after {
-        content: ""; width: 10px; height: 5px;
-        border-left: 2.5px solid var(--white); border-bottom: 2.5px solid var(--white);
+        content: ""; width: 9px; height: 4px;
+        border-left: 2px solid var(--white); border-bottom: 2px solid var(--white);
         transform: rotate(-45deg) scale(0); margin-bottom: 3px;
-        transition: transform 150ms ease;
+        transition: transform 130ms ease;
       }
-      .check .label { font-size: 12px; font-weight: 800; color: var(--ink-soft); letter-spacing: 0.1px; }
+      .check .label { font-size: 11px; font-weight: 800; color: var(--ink-soft); letter-spacing: 0.1px; }
       .check.active {
         background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
         border-color: var(--green);
@@ -538,19 +563,22 @@
           const idLabel = useTelaio ? "TELAIO" : (van ? "VAN" : "");
           const idValue = useTelaio ? telaio : (van || "—");
           const secondary = useTelaio && van ? `VAN ${van}` : "";
+          const stateChip = state
+            ? `<span class="state-chip" title="${escapeHtml(state)}">${escapeHtml(state)}</span>`
+            : "";
+          const prioDot = priority ? `<span class="priority-dot" title="Prioritaria"></span>` : "";
+          const secondaryInline = secondary ? `<span class="id-secondary">${secondary}</span>` : "";
           return `
             <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""}" data-id="${it.id}">
-              <div class="status-row">
-                <span class="state-badge ${state ? "" : "empty"}">${escapeHtml(state || "STATO N/D")}</span>
-                <span class="priority-badge ${priority ? "high" : "normal"}">${priority ? "PRIORITARIA" : "STANDARD"}</span>
-              </div>
               <div class="card-head">
                 <span class="pline">${it.pline || "—"}</span>
+                ${prioDot}
                 <div class="id-block">
-                  ${idLabel ? `<div class="id-label">${idLabel}</div>` : ""}
-                  <div class="id-value">${idValue}</div>
-                  ${secondary ? `<div class="id-secondary">${secondary}</div>` : ""}
+                  ${idLabel ? `<span class="id-tag">${idLabel}</span>` : ""}
+                  <span class="id-value">${idValue}</span>
+                  ${secondaryInline}
                 </div>
+                ${stateChip}
               </div>
               <div class="check-row">
                 <div class="check ${it.verniciato ? "active" : ""}" data-action="verniciato">
