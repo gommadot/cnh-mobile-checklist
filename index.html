@@ -265,6 +265,15 @@
         border: 2px dashed var(--grey-line); border-radius: 12px; padding: 22px;
         text-align: center; color: var(--grey); background: var(--soft);
       }
+      .settings-section {
+        border-top: 1px solid var(--grey-line);
+        padding-top: 12px;
+        display: flex; flex-direction: column; gap: 8px;
+      }
+      .settings-title {
+        font-size: 12px; font-weight: 900; color: var(--ink);
+        text-transform: uppercase; letter-spacing: 0.8px;
+      }
       .download-apk {
         display: flex; align-items: center; justify-content: center; gap: 8px;
         padding: 13px 14px; border-radius: 10px; background: var(--red);
@@ -390,10 +399,13 @@
           <div class="stat"><div class="num" id="historyVern">0</div><div class="lbl">VERN.</div></div>
           <div class="stat"><div class="num" id="historyPre">0</div><div class="lbl">PRE-SHIP</div></div>
         </div>
-        <a class="download-apk" href="/downloads/cnh-operatore.apk" download>
-          &#x21e9; Scarica app Android
-        </a>
-        <div class="download-note">Installa l'APK sul telefono: apre questa app senza barra del browser.</div>
+        <div class="settings-section">
+          <div class="settings-title">Impostazioni</div>
+          <a class="download-apk" href="/downloads/cnh-operatore.apk" download>
+            &#x21e9; Scarica app
+          </a>
+          <div class="download-note">Installa l'APK sul telefono: apre questa app senza barra del browser.</div>
+        </div>
         <div class="history-list" id="historyList"></div>
       </aside>
     </div>
