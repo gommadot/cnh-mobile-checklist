@@ -17,6 +17,10 @@
       "dest": "/api/gate?target=index"
     },
     {
+      "src": "^/manager\\.html$",
+      "dest": "/api/gate?target=blocked"
+    },
+    {
       "src": "^/manifest\\.json$",
       "dest": "/api/gate?target=manifest"
     },
