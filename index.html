@@ -56,6 +56,29 @@
         outline: 2px solid rgba(192,0,0,0.35); border-color: var(--red);
       }
       .toolbar select { font-weight: 600; }
+      .section-tabs {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+        padding: 7px 10px; background: var(--white); border-bottom: 1px solid var(--grey-line);
+        position: sticky; top: 126px; z-index: 38;
+      }
+      .section-tab {
+        border: 1px solid var(--grey-line); border-radius: 8px; background: var(--soft);
+        color: var(--ink-soft); min-height: 38px; font-size: 11px; font-weight: 900;
+        padding: 5px 4px; line-height: 1.1;
+      }
+      .section-tab.active {
+        background: var(--red); border-color: var(--red); color: var(--white);
+        box-shadow: 0 2px 8px rgba(192,0,0,0.18);
+      }
+      .processed-tools {
+        display: none; grid-template-columns: 1fr 1fr; gap: 7px;
+        padding: 7px 10px; background: var(--white); border-bottom: 1px solid var(--grey-line);
+      }
+      .processed-tools.show { display: grid; }
+      .processed-tools select, .processed-tools input {
+        width: 100%; padding: 9px 10px; border: 1px solid var(--grey-line);
+        border-radius: 8px; font-size: 13px; background: var(--white); color: var(--ink);
+      }
       .stats {
         display: grid; grid-template-columns: repeat(4, 1fr);
         gap: 5px; padding: 7px 10px; background: var(--white);
@@ -145,7 +168,18 @@
         overflow: hidden; text-overflow: ellipsis;
         flex-shrink: 0; line-height: 1.4;
       }
+      .section-chip {
+        display: inline-flex; align-items: center;
+        padding: 2px 6px; border-radius: 4px; font-size: 9.5px;
+        font-weight: 900; letter-spacing: 0.2px; text-transform: uppercase;
+        background: var(--blue-bg); color: var(--blue); border: 1px solid #bae6fd;
+        white-space: nowrap; flex-shrink: 0; line-height: 1.4;
+      }
+      .section-chip.done { background: var(--green-bg); color: var(--green); border-color: #bbf7d0; }
+      .section-chip.todo { background: #fee2e2; color: var(--red); border-color: #fecaca; }
+      .section-chip.repeat { background: var(--amber-bg); color: var(--amber); border-color: #fde68a; }
       .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+      .check-row.repeat-only { grid-template-columns: 1fr; }
       .check {
         display: flex; align-items: center; justify-content: center; gap: 6px;
         padding: 6px 6px; border-radius: 7px; border: 1px solid var(--grey-line);
@@ -350,6 +384,19 @@
           <option value="EPICO">EPICO</option>
         </select>
       </div>
+      <div class="section-tabs" role="tablist" aria-label="Sezioni operatore">
+        <button class="section-tab active" data-section="todo" type="button">Da processare</button>
+        <button class="section-tab" data-section="done" type="button">Processate</button>
+        <button class="section-tab" data-section="repeat" type="button">Repeat<br />Pre-ship</button>
+      </div>
+      <div class="processed-tools" id="processedTools">
+        <select id="processedMode" aria-label="Filtro processate">
+          <option value="today">Oggi</option>
+          <option value="date">Giorno scelto</option>
+          <option value="all">Visualizza tutto</option>
+        </select>
+        <input type="date" id="processedDate" />
+      </div>
       <div class="stats">
         <div class="stat"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
         <div class="stat priority"><div class="num" id="statPriority">0</div><div class="lbl">PRIOR.</div></div>
@@ -427,6 +474,10 @@
         list: document.getElementById("list"),
         search: document.getElementById("search"),
         pline: document.getElementById("plineFilter"),
+        sectionTabs: Array.from(document.querySelectorAll(".section-tab")),
+        processedTools: document.getElementById("processedTools"),
+        processedMode: document.getElementById("processedMode"),
+        processedDate: document.getElementById("processedDate"),
         refresh: document.getElementById("refreshBtn"),
         menu: document.getElementById("menuBtn"),
         statTot: document.getElementById("statTot"),
@@ -444,6 +495,7 @@
         historyPre: document.getElementById("historyPre"),
       };
       let items = [];
+      let activeSection = "todo";
 
       function showToast(message, isError) {
         els.toast.textContent = message;
@@ -473,6 +525,12 @@
         try { return formatDateInput(new Date(iso)) === dateValue; }
         catch (e) { return false; }
       }
+      function daysSince(iso) {
+        if (!iso) return null;
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return null;
+        return Math.floor((Date.now() - d.getTime()) / 86400000);
+      }
       function escapeHtml(value) {
         return String(value || "").replace(/[&<>"']/g, ch => ({
           "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
@@ -499,6 +557,34 @@
       function getState(item) {
         return String(item.stato || item.status || item.stato_descrizione || item.stato_codice || "").trim();
       }
+      function isComplete(item) {
+        return !!(item.verniciato && item.preshipment);
+      }
+      function isRepeatPreshipment(item) {
+        const age = daysSince(item.preshipment_at);
+        return !!item.preshipment && age !== null && age >= 15;
+      }
+      function workedOnDate(item, dateValue) {
+        return sameDate(item.verniciato_at, dateValue) || sameDate(item.preshipment_at, dateValue);
+      }
+      function sectionLabel(item) {
+        if (isRepeatPreshipment(item)) return { text: "Repeat pre-ship", cls: "repeat" };
+        if (isComplete(item)) return { text: "Processata", cls: "done" };
+        return { text: "Da processare", cls: "todo" };
+      }
+      function matchesSearch(item, q, qDigits) {
+        if (!q) return true;
+        const hay = normText(`${item.pline||""} ${item.van||""} ${item.telaio||""} ${item.note||""} ${getState(item)} ${isPriority(item) ? "priorita priority top urgente" : "standard normale"} ${sectionLabel(item).text}`);
+        const vanDigits = compactDigits(item.van);
+        const telaioDigits = compactDigits(item.telaio);
+        const numericMatch = qDigits && (
+          vanDigits.includes(qDigits) ||
+          telaioDigits.includes(qDigits) ||
+          digitsOnly(item.van).includes(digitsOnly(q)) ||
+          digitsOnly(item.telaio).includes(digitsOnly(q))
+        );
+        return hay.includes(q) || numericMatch;
+      }
 
       function sortItems(arr) {
         return arr.slice().sort((a, b) => {
@@ -518,27 +604,25 @@
         const q = normText(els.search.value || "").trim();
         const qDigits = compactDigits(q);
         const plineSel = els.pline.value;
+        const processedDate = els.processedMode.value === "today" ? formatDateInput(new Date()) : els.processedDate.value;
         const filtered = items.filter(it => {
           if (plineSel && (it.pline || "").toUpperCase() !== plineSel) return false;
-          if (q) {
-            const hay = normText(`${it.pline||""} ${it.van||""} ${it.telaio||""} ${it.note||""} ${isPriority(it) ? "priorita priority top urgente" : "standard normale"}`);
-            const vanDigits = compactDigits(it.van);
-            const telaioDigits = compactDigits(it.telaio);
-            const numericMatch = qDigits && (
-              vanDigits.includes(qDigits) ||
-              telaioDigits.includes(qDigits) ||
-              digitsOnly(it.van).includes(digitsOnly(q)) ||
-              digitsOnly(it.telaio).includes(digitsOnly(q))
-            );
-            if (!hay.includes(q) && !numericMatch) return false;
+          if (q) return matchesSearch(it, q, qDigits);
+          if (activeSection === "todo") return !isComplete(it);
+          if (activeSection === "repeat") return isRepeatPreshipment(it);
+          if (activeSection === "done") {
+            if (!isComplete(it)) return false;
+            if (els.processedMode.value === "all") return true;
+            return workedOnDate(it, processedDate);
           }
           return true;
         });
         const ordered = sortItems(filtered);
         els.statTot.textContent = items.length;
         els.statPriority.textContent = items.filter(isPriority).length;
-        els.statTodo.textContent = items.filter(i => !(i.verniciato && i.preshipment)).length;
-        els.statDone.textContent = items.filter(i => i.verniciato && i.preshipment).length;
+        els.statTodo.textContent = items.filter(i => !isComplete(i)).length;
+        els.statDone.textContent = items.filter(isComplete).length;
+        els.processedTools.classList.toggle("show", activeSection === "done" && !q);
         if (ordered.length === 0) {
           els.list.innerHTML = `
             <div class="empty">
@@ -549,9 +633,12 @@
           return;
         }
         els.list.innerHTML = ordered.map(it => {
-          const complete = it.verniciato && it.preshipment;
+          const complete = isComplete(it);
           const priority = isPriority(it);
           const state = getState(it);
+          const label = sectionLabel(it);
+          const repeatAge = daysSince(it.preshipment_at);
+          const repeatMode = activeSection === "repeat" && !q && isRepeatPreshipment(it);
           const vTs = it.verniciato_at ? formatTime(it.verniciato_at) : "";
           const pTs = it.preshipment_at ? formatTime(it.preshipment_at) : "";
           const tsLine = (vTs || pTs)
@@ -566,8 +653,12 @@
           const stateChip = state
             ? `<span class="state-chip" title="${escapeHtml(state)}">${escapeHtml(state)}</span>`
             : "";
+          const sectionChip = `<span class="section-chip ${label.cls}">${label.text}</span>`;
           const prioDot = priority ? `<span class="priority-dot" title="Prioritaria"></span>` : "";
           const secondaryInline = secondary ? `<span class="id-secondary">${secondary}</span>` : "";
+          const repeatNote = repeatMode
+            ? `<div class="note">Ultimo pre-shipment ${repeatAge} giorni fa. Conferma nuovamente solo il pre-shipment.</div>`
+            : "";
           return `
             <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""}" data-id="${it.id}">
               <div class="card-head">
@@ -579,16 +670,18 @@
                   ${secondaryInline}
                 </div>
                 ${stateChip}
+                ${sectionChip}
               </div>
-              <div class="check-row">
-                <div class="check ${it.verniciato ? "active" : ""}" data-action="verniciato">
+              <div class="check-row ${repeatMode ? "repeat-only" : ""}">
+                ${repeatMode ? "" : `<div class="check ${it.verniciato ? "active" : ""}" data-action="verniciato">
                   <span class="icon"></span><span class="label">VERNICIATO</span>
-                </div>
-                <div class="check ${it.preshipment ? "active" : ""}" data-action="preshipment">
-                  <span class="icon"></span><span class="label">PRE-SHIPMENT</span>
+                </div>`}
+                <div class="check ${it.preshipment ? "active" : ""}" data-action="preshipment" data-repeat="${repeatMode ? "1" : "0"}">
+                  <span class="icon"></span><span class="label">${repeatMode ? "CONFERMA PRE-SHIPMENT" : "PRE-SHIPMENT"}</span>
                 </div>
               </div>
               ${it.note ? `<div class="note">${it.note}</div>` : ""}
+              ${repeatNote}
               ${tsLine}
             </div>`;
         }).join("");
@@ -658,12 +751,12 @@
         }
       }
 
-      async function toggleAction(id, action, newValue) {
+      async function toggleAction(id, action, newValue, opts = {}) {
         const now = new Date().toISOString();
         const body = {
           [action]: newValue,
-          [`${action}_at`]: newValue ? now : null,
-          [`${action}_by`]: newValue ? opName : null,
+          [`${action}_at`]: (newValue || opts.forceTimestamp) ? now : null,
+          [`${action}_by`]: (newValue || opts.forceTimestamp) ? opName : null,
           updated_at: now,
         };
         try {
@@ -673,7 +766,7 @@
           if (idx >= 0) items[idx] = data;
           items = sortItems(items);
           renderList();
-          showToast(newValue ? "Spunta salvata" : "Spunta rimossa");
+          showToast(opts.forceTimestamp ? "Repeat pre-shipment confermato" : (newValue ? "Spunta salvata" : "Spunta rimossa"));
         } catch (e) {
           console.error(e);
           showToast("Errore di rete: " + (e.message || ""), true);
@@ -736,20 +829,28 @@
         if (!card) return;
         const id = parseInt(card.dataset.id, 10);
         const action = check.dataset.action;
+        const isRepeat = check.dataset.repeat === "1";
         const isActive = check.classList.contains("active");
         const item = items.find(i => i.id === id);
-        const actionLabel = action === "verniciato" ? "VERNICIATO" : "PRE-SHIPMENT";
+        const actionLabel = isRepeat ? "REPEAT PRE-SHIPMENT" : (action === "verniciato" ? "VERNICIATO" : "PRE-SHIPMENT");
         const telaio = String(item?.telaio || "").trim();
         const hasTelaio = telaio && telaio !== "0";
         const identLabel = hasTelaio ? "TELAIO" : "VAN";
         const identValue = hasTelaio ? telaio : (item?.van || "—");
         openConfirmModal({
-          actionLabel, identLabel, identValue, isActive,
-          onConfirm: () => toggleAction(id, action, !isActive),
+          actionLabel, identLabel, identValue, isActive: isRepeat ? false : isActive,
+          onConfirm: () => toggleAction(id, action, isRepeat ? true : !isActive, { forceTimestamp: isRepeat }),
         });
       });
       els.search.addEventListener("input", renderList);
       els.pline.addEventListener("change", renderList);
+      els.sectionTabs.forEach(tab => tab.addEventListener("click", () => {
+        activeSection = tab.dataset.section;
+        els.sectionTabs.forEach(t => t.classList.toggle("active", t === tab));
+        renderList();
+      }));
+      els.processedMode.addEventListener("change", renderList);
+      els.processedDate.addEventListener("change", renderList);
       els.refresh.addEventListener("click", loadList);
       els.menu.addEventListener("click", openHistoryPanel);
       els.historyClose.addEventListener("click", closeHistoryPanel);
@@ -769,6 +870,7 @@
       });
 
       // === Init + polling fallback =============================================
+      els.processedDate.value = formatDateInput(new Date());
       loadList();
       setInterval(loadList, 30000);
       document.addEventListener("visibilitychange", () => {
