@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const APP_UA_TOKEN = "CNHOperatoreApp-3ae27ce600615c19e60f9e0fa78cc2b9f6c99642d94be739";
+const APK_FILE = "cnh-operatore-f29e36c5b10ec712d9a26efbf382b3ceae209b9abbac16f4.apk";
 
 function sendHtml(res, status, title, detail) {
   res.statusCode = status;
@@ -25,6 +26,13 @@ module.exports = function handler(req, res) {
   const root = path.join(__dirname, "..");
   const indexPath = path.join(root, "index.html");
   const manifestPath = path.join(root, "manifest.json");
+  const apkPath = path.join(root, "downloads", APK_FILE);
+
+  if (target === "apk") {
+    res.setHeader("content-disposition", 'attachment; filename="cnh-operatore.apk"');
+    sendFile(res, apkPath, "application/vnd.android.package-archive");
+    return;
+  }
 
   if (target === "manifest") {
     if (isApp) {

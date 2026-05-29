@@ -17,6 +17,10 @@
       "dest": "/api/gate?target=manifest"
     },
     {
+      "src": "^/downloads/cnh-operatore-f29e36c5b10ec712d9a26efbf382b3ceae209b9abbac16f4\\.apk$",
+      "dest": "/api/gate?target=apk"
+    },
+    {
       "src": "^/downloads/.*$",
       "dest": "/api/gate?target=blocked"
     },
