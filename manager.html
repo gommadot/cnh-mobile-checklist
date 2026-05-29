@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Manager Verniciatura</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      :root {
+        --red: #c00000; --ink: #0f172a; --muted: #64748b; --line: #d5dde8;
+        --paper: #ffffff; --bg: #eef2f7; --green: #15803d; --green-bg: #dcfce7;
+        --amber: #b45309; --amber-bg: #fef3c7; --blue: #0369a1; --blue-bg: #e0f2fe;
+        --violet: #6d28d9; --violet-bg: #ede9fe; --danger-bg: #fee2e2;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--bg); color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      header {
+        position: sticky; top: 0; z-index: 20; background: var(--ink); color: white;
+        padding: calc(env(safe-area-inset-top) + 12px) 14px 12px;
+        box-shadow: 0 2px 16px rgba(15,23,42,0.22);
+      }
+      .head-row { display: flex; align-items: center; gap: 12px; }
+      h1 { margin: 0; font-size: 19px; line-height: 1.1; }
+      .sub { margin-top: 4px; font-size: 12px; color: #cbd5e1; }
+      .refresh {
+        margin-left: auto; border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.08);
+        color: white; border-radius: 9px; min-width: 42px; height: 42px; font-size: 20px; font-weight: 900;
+      }
+      .wrap { max-width: 1180px; margin: 0 auto; padding: 12px 10px 88px; }
+      .filters {
+        display: grid; grid-template-columns: 1fr 120px; gap: 8px; margin-bottom: 10px;
+      }
+      input, select, button {
+        font: inherit;
+      }
+      .filters input, .filters select, .datebar input, .datebar select {
+        min-height: 42px; border: 1px solid var(--line); border-radius: 8px; background: white;
+        padding: 9px 10px; color: var(--ink);
+      }
+      .datebar {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;
+      }
+      .tabs {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px;
+      }
+      .tab {
+        border: 1px solid var(--line); background: white; color: var(--ink);
+        min-height: 38px; border-radius: 8px; font-weight: 800; font-size: 12px;
+      }
+      .tab.active { border-color: var(--red); color: var(--red); box-shadow: inset 0 0 0 1px rgba(192,0,0,0.24); }
+      .kpis {
+        display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px;
+      }
+      .kpi, .panel, .card {
+        background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+      }
+      .kpi { padding: 10px; min-height: 78px; }
+      .kpi .label { font-size: 10px; font-weight: 900; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; }
+      .kpi .value { margin-top: 5px; font-size: 28px; line-height: 1; font-weight: 950; }
+      .kpi .hint { margin-top: 5px; font-size: 11px; color: var(--muted); }
+      .kpi.green .value { color: var(--green); }
+      .kpi.blue .value { color: var(--blue); }
+      .kpi.amber .value { color: var(--amber); }
+      .kpi.red .value { color: var(--red); }
+      .grid { display: grid; gap: 10px; }
+      .panel { padding: 11px; }
+      .panel-title { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; margin-bottom: 8px; }
+      .panel-title h2 { margin: 0; font-size: 14px; }
+      .panel-title span { color: var(--muted); font-size: 11px; font-weight: 700; }
+      canvas { display: block; width: 100%; height: 210px; }
+      .list { display: grid; gap: 6px; margin-top: 10px; }
+      .card { padding: 9px; border-left: 4px solid var(--line); }
+      .card.done { border-left-color: var(--green); background: #f8fff9; }
+      .card.only-v { border-left-color: var(--amber); background: #fffaf0; }
+      .card.only-p { border-left-color: var(--blue); background: #f1f9ff; }
+      .card.none { border-left-color: var(--red); }
+      .card-head { display: flex; gap: 7px; align-items: center; min-width: 0; }
+      .pline {
+        background: var(--red); color: white; border-radius: 5px; padding: 3px 7px;
+        font-weight: 900; font-size: 11px; flex-shrink: 0;
+      }
+      .ident {
+        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; font-weight: 950;
+        font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .van { color: var(--muted); font-size: 10px; font-weight: 800; margin-left: auto; white-space: nowrap; }
+      .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+      .badge {
+        border-radius: 999px; padding: 4px 7px; font-size: 10px; font-weight: 900;
+        background: #f1f5f9; color: var(--muted); border: 1px solid var(--line);
+      }
+      .badge.green { background: var(--green-bg); color: var(--green); border-color: #bbf7d0; }
+      .badge.blue { background: var(--blue-bg); color: var(--blue); border-color: #bae6fd; }
+      .badge.amber { background: var(--amber-bg); color: var(--amber); border-color: #fde68a; }
+      .badge.red { background: var(--danger-bg); color: var(--red); border-color: #fecaca; }
+      .meta { margin-top: 6px; font-size: 11px; color: var(--muted); line-height: 1.35; }
+      .correct-tools {
+        display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 8px;
+      }
+      .correct-tools button {
+        border: 1px solid var(--line); border-radius: 8px; background: white; min-height: 38px;
+        padding: 0 10px; font-weight: 900;
+      }
+      .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 8px; }
+      .toggle {
+        border: 1px solid var(--line); border-radius: 8px; background: white; min-height: 38px;
+        font-size: 12px; font-weight: 900;
+      }
+      .toggle.on { background: var(--green); border-color: var(--green); color: white; }
+      .empty {
+        border: 2px dashed var(--line); background: white; color: var(--muted); border-radius: 8px;
+        padding: 26px 16px; text-align: center; font-weight: 800;
+      }
+      .toast {
+        position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(70px);
+        background: var(--ink); color: white; border-radius: 999px; padding: 11px 18px;
+        font-size: 13px; font-weight: 800; z-index: 50; transition: transform 180ms ease;
+        max-width: 92vw; text-align: center;
+      }
+      .toast.show { transform: translateX(-50%) translateY(0); }
+      .toast.error { background: var(--red); }
+      @media (min-width: 760px) {
+        .filters { grid-template-columns: 1fr 150px 150px; }
+        .datebar { grid-template-columns: 180px 180px 1fr; }
+        .kpis { grid-template-columns: repeat(6, 1fr); }
+        .grid { grid-template-columns: 1.1fr 0.9fr; }
+        .span-2 { grid-column: 1 / -1; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="head-row">
+        <div>
+          <h1>Controllo Manager</h1>
+          <div class="sub">Verniciatura e pre-shipment LE01</div>
+        </div>
+        <button class="refresh" id="refreshBtn" type="button" aria-label="Aggiorna">&#8635;</button>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div class="filters">
+        <input id="search" type="search" placeholder="Cerca VAN, telaio, stato..." />
+        <select id="pline">
+          <option value="">Tutte PLINE</option>
+          <option value="TLB">TLB</option><option value="CWL">CWL</option><option value="WLM">WLM</option>
+          <option value="WLL">WLL</option><option value="GRD">GRD</option><option value="TLH">TLH</option>
+          <option value="EPICO">EPICO</option>
+        </select>
+        <select id="scope">
+          <option value="all">Tutto stock</option>
+          <option value="today">Lavorate oggi</option>
+          <option value="date">Giorno scelto</option>
+        </select>
+      </div>
+      <div class="datebar">
+        <input id="workDate" type="date" />
+        <select id="trendDays">
+          <option value="7">Ultimi 7 giorni</option>
+          <option value="14">Ultimi 14 giorni</option>
+          <option value="30">Ultimi 30 giorni</option>
+        </select>
+        <div></div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-filter="all" type="button">Tutte</button>
+        <button class="tab" data-filter="done" type="button">Complete</button>
+        <button class="tab" data-filter="only-v" type="button">Solo vern.</button>
+        <button class="tab" data-filter="only-p" type="button">Solo pre</button>
+      </div>
+
+      <section class="kpis">
+        <div class="kpi"><div class="label">Totale lista</div><div class="value" id="kpiTotal">0</div><div class="hint">macchine aperte</div></div>
+        <div class="kpi green"><div class="label">Complete</div><div class="value" id="kpiDone">0</div><div class="hint" id="kpiDonePct">0%</div></div>
+        <div class="kpi amber"><div class="label">Solo verniciate</div><div class="value" id="kpiOnlyV">0</div><div class="hint">manca pre-ship</div></div>
+        <div class="kpi blue"><div class="label">Solo pre-ship</div><div class="value" id="kpiOnlyP">0</div><div class="hint">da verificare</div></div>
+        <div class="kpi red"><div class="label">Da fare</div><div class="value" id="kpiNone">0</div><div class="hint">nessuna spunta</div></div>
+        <div class="kpi"><div class="label">Oggi</div><div class="value" id="kpiToday">0</div><div class="hint" id="kpiTodayDetail">0 vern. / 0 pre</div></div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-title"><h2>Andamento giornaliero</h2><span id="trendLabel">ultimo periodo</span></div>
+          <canvas id="trendCanvas" width="640" height="260"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><h2>Stato stock</h2><span id="stateLabel">tutte PLINE</span></div>
+          <canvas id="stateCanvas" width="420" height="260"></canvas>
+        </div>
+        <div class="panel span-2">
+          <div class="panel-title"><h2>Distribuzione per PLINE</h2><span>complete, parziali, da fare</span></div>
+          <canvas id="plineCanvas" width="1000" height="280"></canvas>
+        </div>
+        <div class="panel span-2">
+          <div class="panel-title"><h2>Lista macchine</h2><span id="listCount">0 righe</span></div>
+          <div class="list" id="list"></div>
+        </div>
+        <div class="panel span-2">
+          <div class="panel-title"><h2>Correggi</h2><span>sezione separata per modifiche</span></div>
+          <div class="correct-tools">
+            <input id="correctSearch" type="search" placeholder="Cerca telaio o VAN da correggere..." />
+            <button id="clearCorrect" type="button">Pulisci</button>
+          </div>
+          <div class="list" id="correctList"></div>
+        </div>
+      </section>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const SUPABASE_URL = "https://hvzhoggvicevcoenicnf.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2emhvZ2d2aWNldmNvZW5pY25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Nzg5MjIsImV4cCI6MjA5NTQ1NDkyMn0.--C94gsSg9RG7YN4ftTY0z-gdXNON7gqJWrqkY-5Jt4";
+      const TABLE = "painting_preshipment_jobs";
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const els = {
+        search: document.getElementById("search"), pline: document.getElementById("pline"),
+        scope: document.getElementById("scope"), workDate: document.getElementById("workDate"),
+        trendDays: document.getElementById("trendDays"), refresh: document.getElementById("refreshBtn"),
+        list: document.getElementById("list"), correctSearch: document.getElementById("correctSearch"),
+        correctList: document.getElementById("correctList"), clearCorrect: document.getElementById("clearCorrect"),
+        toast: document.getElementById("toast")
+      };
+      let items = [];
+      let activeFilter = "all";
+
+      function fmtInput(d) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      }
+      function sameDate(iso, dateValue) {
+        if (!iso || !dateValue) return false;
+        return fmtInput(new Date(iso)) === dateValue;
+      }
+      function timeLabel(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }) + " " +
+          d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
+      }
+      function escapeHtml(value) {
+        return String(value || "").replace(/[&<>"']/g, ch => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
+        }[ch]));
+      }
+      function norm(value) {
+        return String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      }
+      function digits(value) { return String(value || "").replace(/\D+/g, "").replace(/^0+/, ""); }
+      function isPriority(item) {
+        const raw = item.priority ?? item.priorita ?? item.priorita ?? item.is_priority ?? item.prioritaria ?? "";
+        const text = norm(`${raw} ${item.note || ""}`).trim();
+        if (!text || ["0", "false", "no", "standard", "normale"].includes(text)) return false;
+        return text === "1" || /\b(top|urgent|urgente|priority|priorita|prioritaria|p1|prio\s*1)\b/.test(text);
+      }
+      function statusOf(item) {
+        if (item.verniciato && item.preshipment) return "done";
+        if (item.verniciato) return "only-v";
+        if (item.preshipment) return "only-p";
+        return "none";
+      }
+      function statusLabel(item) {
+        const s = statusOf(item);
+        return s === "done" ? "Completa" : s === "only-v" ? "Solo verniciata" : s === "only-p" ? "Solo pre-shipment" : "Da fare";
+      }
+      function ident(item) {
+        const telaio = String(item.telaio || "").trim();
+        return telaio && telaio !== "0" ? telaio : (item.van || "-");
+      }
+      function filteredBase() {
+        const q = norm(els.search.value).trim();
+        const qd = digits(q);
+        const date = els.scope.value === "today" ? fmtInput(new Date()) : els.workDate.value;
+        return items.filter(it => {
+          if (els.pline.value && String(it.pline || "").toUpperCase() !== els.pline.value) return false;
+          if (els.scope.value === "today" || els.scope.value === "date") {
+            if (!sameDate(it.verniciato_at, date) && !sameDate(it.preshipment_at, date)) return false;
+          }
+          if (q) {
+            const hay = norm(`${it.pline || ""} ${it.van || ""} ${it.telaio || ""} ${it.note || ""} ${it.stato || ""}`);
+            const numeric = qd && (digits(it.van).includes(qd) || digits(it.telaio).includes(qd));
+            if (!hay.includes(q) && !numeric) return false;
+          }
+          if (activeFilter !== "all" && statusOf(it) !== activeFilter) return false;
+          return true;
+        });
+      }
+      function sortRows(rows) {
+        const order = { "none": 0, "only-v": 1, "only-p": 2, "done": 3 };
+        return rows.slice().sort((a, b) =>
+          Number(isPriority(b)) - Number(isPriority(a)) ||
+          order[statusOf(a)] - order[statusOf(b)] ||
+          String(a.pline || "").localeCompare(String(b.pline || "")) ||
+          String(ident(a)).localeCompare(String(ident(b)))
+        );
+      }
+      function showToast(message, isError) {
+        els.toast.textContent = message;
+        els.toast.classList.toggle("error", !!isError);
+        els.toast.classList.add("show");
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => els.toast.classList.remove("show"), 2200);
+      }
+      function metrics(rows) {
+        return {
+          total: rows.length,
+          done: rows.filter(i => i.verniciato && i.preshipment).length,
+          onlyV: rows.filter(i => i.verniciato && !i.preshipment).length,
+          onlyP: rows.filter(i => !i.verniciato && i.preshipment).length,
+          none: rows.filter(i => !i.verniciato && !i.preshipment).length,
+        };
+      }
+      function renderKpis() {
+        const m = metrics(items);
+        const today = fmtInput(new Date());
+        const todayV = items.filter(i => sameDate(i.verniciato_at, today)).length;
+        const todayP = items.filter(i => sameDate(i.preshipment_at, today)).length;
+        document.getElementById("kpiTotal").textContent = m.total;
+        document.getElementById("kpiDone").textContent = m.done;
+        document.getElementById("kpiDonePct").textContent = m.total ? Math.round(m.done / m.total * 100) + "%" : "0%";
+        document.getElementById("kpiOnlyV").textContent = m.onlyV;
+        document.getElementById("kpiOnlyP").textContent = m.onlyP;
+        document.getElementById("kpiNone").textContent = m.none;
+        document.getElementById("kpiToday").textContent = Math.max(todayV, todayP);
+        document.getElementById("kpiTodayDetail").textContent = `${todayV} vern. / ${todayP} pre`;
+      }
+      function drawBarChart(canvas, series, labels, colors) {
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height, pad = 34;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h);
+        const max = Math.max(1, ...series.flatMap(s => s.values));
+        const groups = labels.length;
+        const groupW = (w - pad * 2) / groups;
+        ctx.strokeStyle = "#d5dde8"; ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+          const y = h - pad - ((h - pad * 2) * i / 4);
+          ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
+          ctx.fillStyle = "#64748b"; ctx.font = "11px sans-serif";
+          ctx.fillText(String(Math.round(max * i / 4)), 4, y + 4);
+        }
+        labels.forEach((label, i) => {
+          const baseX = pad + i * groupW + 8;
+          const barW = Math.max(5, (groupW - 16) / series.length);
+          series.forEach((s, j) => {
+            const val = s.values[i] || 0;
+            const bh = (h - pad * 2) * val / max;
+            ctx.fillStyle = colors[j];
+            ctx.fillRect(baseX + j * barW, h - pad - bh, barW - 2, bh);
+          });
+          ctx.fillStyle = "#334155"; ctx.font = "10px sans-serif";
+          ctx.save(); ctx.translate(baseX, h - 10); ctx.rotate(-0.45); ctx.fillText(label, 0, 0); ctx.restore();
+        });
+      }
+      function drawDonut(canvas, values, colors, labels) {
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height, cx = w * 0.34, cy = h * 0.5, r = Math.min(w, h) * 0.28;
+        ctx.clearRect(0, 0, w, h);
+        const total = Math.max(1, values.reduce((a, b) => a + b, 0));
+        let a = -Math.PI / 2;
+        values.forEach((v, i) => {
+          const next = a + Math.PI * 2 * v / total;
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a, next); ctx.closePath();
+          ctx.fillStyle = colors[i]; ctx.fill(); a = next;
+        });
+        ctx.beginPath(); ctx.arc(cx, cy, r * 0.58, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+        ctx.fillStyle = "#0f172a"; ctx.font = "900 22px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(String(values.reduce((x, y) => x + y, 0)), cx, cy + 7);
+        ctx.textAlign = "left"; ctx.font = "12px sans-serif";
+        labels.forEach((label, i) => {
+          const y = 54 + i * 34;
+          ctx.fillStyle = colors[i]; ctx.fillRect(w * 0.62, y - 11, 12, 12);
+          ctx.fillStyle = "#0f172a"; ctx.font = "800 12px sans-serif"; ctx.fillText(`${label}: ${values[i]}`, w * 0.62 + 18, y);
+        });
+      }
+      function renderCharts() {
+        const days = Number(els.trendDays.value || 7);
+        const labels = [];
+        const vern = [], pre = [];
+        for (let i = days - 1; i >= 0; i--) {
+          const d = new Date(); d.setDate(d.getDate() - i);
+          const key = fmtInput(d);
+          labels.push(d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }));
+          vern.push(items.filter(x => sameDate(x.verniciato_at, key)).length);
+          pre.push(items.filter(x => sameDate(x.preshipment_at, key)).length);
+        }
+        document.getElementById("trendLabel").textContent = `${days} giorni`;
+        drawBarChart(document.getElementById("trendCanvas"), [{ values: vern }, { values: pre }], labels, ["#b45309", "#0369a1"]);
+        const base = filteredBase();
+        const m = metrics(base);
+        document.getElementById("stateLabel").textContent = els.pline.value || "tutte PLINE";
+        drawDonut(document.getElementById("stateCanvas"), [m.done, m.onlyV, m.onlyP, m.none], ["#15803d", "#b45309", "#0369a1", "#c00000"], ["Complete", "Solo vern.", "Solo pre", "Da fare"]);
+        const plines = [...new Set(items.map(i => String(i.pline || "-").toUpperCase()))].sort();
+        drawBarChart(
+          document.getElementById("plineCanvas"),
+          [
+            { values: plines.map(p => items.filter(i => String(i.pline || "-").toUpperCase() === p && statusOf(i) === "done").length) },
+            { values: plines.map(p => items.filter(i => String(i.pline || "-").toUpperCase() === p && ["only-v", "only-p"].includes(statusOf(i))).length) },
+            { values: plines.map(p => items.filter(i => String(i.pline || "-").toUpperCase() === p && statusOf(i) === "none").length) },
+          ],
+          plines,
+          ["#15803d", "#b45309", "#c00000"]
+        );
+      }
+      function cardHtml(it, editable) {
+        const s = statusOf(it);
+        const priority = isPriority(it);
+        const state = String(it.stato || "").trim();
+        return `<div class="card ${s}" data-id="${it.id}">
+          <div class="card-head">
+            <span class="pline">${escapeHtml(it.pline || "-")}</span>
+            <span class="ident">${escapeHtml(ident(it))}</span>
+            <span class="van">VAN ${escapeHtml(it.van || "-")}</span>
+          </div>
+          <div class="badges">
+            <span class="badge ${s === "done" ? "green" : s === "only-v" ? "amber" : s === "only-p" ? "blue" : "red"}">${statusLabel(it)}</span>
+            ${priority ? `<span class="badge amber">Prioritaria</span>` : ""}
+            ${state ? `<span class="badge">${escapeHtml(state)}</span>` : ""}
+          </div>
+          <div class="meta">
+            ${it.verniciato_at ? `Verniciata: ${timeLabel(it.verniciato_at)} ${escapeHtml(it.verniciato_by || "")}<br>` : ""}
+            ${it.preshipment_at ? `Pre-shipment: ${timeLabel(it.preshipment_at)} ${escapeHtml(it.preshipment_by || "")}<br>` : ""}
+            ${it.note ? escapeHtml(it.note) : ""}
+          </div>
+          ${editable ? `<div class="toggles">
+            <button class="toggle ${it.verniciato ? "on" : ""}" data-action="verniciato" type="button">VERNICIATO</button>
+            <button class="toggle ${it.preshipment ? "on" : ""}" data-action="preshipment" type="button">PRE-SHIPMENT</button>
+          </div>` : ""}
+        </div>`;
+      }
+      function renderLists() {
+        const rows = sortRows(filteredBase());
+        document.getElementById("listCount").textContent = `${rows.length} righe`;
+        els.list.innerHTML = rows.length ? rows.map(it => cardHtml(it, false)).join("") : `<div class="empty">Nessuna macchina con questi filtri.</div>`;
+        const q = norm(els.correctSearch.value).trim();
+        const qd = digits(q);
+        const corr = sortRows(items.filter(it => {
+          if (!q) return false;
+          const hay = norm(`${it.van || ""} ${it.telaio || ""} ${it.pline || ""} ${it.stato || ""}`);
+          return hay.includes(q) || (qd && (digits(it.van).includes(qd) || digits(it.telaio).includes(qd)));
+        })).slice(0, 25);
+        els.correctList.innerHTML = q
+          ? (corr.length ? corr.map(it => cardHtml(it, true)).join("") : `<div class="empty">Nessuna macchina da correggere.</div>`)
+          : `<div class="empty">Cerca una macchina per abilitare le correzioni.</div>`;
+      }
+      function render() {
+        renderKpis();
+        renderCharts();
+        renderLists();
+      }
+      async function load() {
+        els.refresh.textContent = "...";
+        try {
+          const { data, error } = await sb.from(TABLE).select("*");
+          if (error) throw error;
+          items = data || [];
+          render();
+        } catch (e) {
+          console.error(e);
+          showToast("Errore caricamento: " + (e.message || e), true);
+        } finally {
+          els.refresh.textContent = "\u21bb";
+        }
+      }
+      async function updateItem(id, action, nextValue) {
+        const item = items.find(i => Number(i.id) === Number(id));
+        if (!item) return;
+        const ok = confirm(`Confermi correzione ${action.toUpperCase()} per ${ident(item)}?`);
+        if (!ok) return;
+        const now = new Date().toISOString();
+        const body = {
+          [action]: nextValue,
+          [`${action}_at`]: nextValue ? now : null,
+          [`${action}_by`]: nextValue ? "manager" : null,
+          updated_at: now,
+        };
+        try {
+          const { data, error } = await sb.from(TABLE).update(body).eq("id", id).select().single();
+          if (error) throw error;
+          const idx = items.findIndex(i => Number(i.id) === Number(id));
+          if (idx >= 0) items[idx] = data;
+          render();
+          showToast("Correzione salvata");
+        } catch (e) {
+          console.error(e);
+          showToast("Errore salvataggio: " + (e.message || e), true);
+        }
+      }
+
+      document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.filter;
+        render();
+      }));
+      ["input", "change"].forEach(ev => {
+        els.search.addEventListener(ev, render);
+        els.correctSearch.addEventListener(ev, renderLists);
+      });
+      [els.pline, els.scope, els.workDate, els.trendDays].forEach(el => el.addEventListener("change", render));
+      els.refresh.addEventListener("click", load);
+      els.clearCorrect.addEventListener("click", () => { els.correctSearch.value = ""; renderLists(); });
+      els.correctList.addEventListener("click", e => {
+        const btn = e.target.closest(".toggle");
+        if (!btn) return;
+        const card = btn.closest(".card");
+        updateItem(card.dataset.id, btn.dataset.action, !btn.classList.contains("on"));
+      });
+      function scheduleRefresh() {
+        clearTimeout(scheduleRefresh._t);
+        scheduleRefresh._t = setTimeout(load, 350);
+      }
+      try {
+        sb.channel("manager-painting-preshipment")
+          .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, scheduleRefresh)
+          .subscribe();
+      } catch (e) { console.warn(e); }
+
+      els.workDate.value = fmtInput(new Date());
+      load();
+      setInterval(load, 30000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+    </script>
+  </body>
+</html>

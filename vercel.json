@@ -1,6 +1,10 @@
 {
   "routes": [
     {
+      "src": "^/manager/1f513dde558b12a989262a8b93e5cbdc2168fd1d29bd90d4$",
+      "dest": "/api/gate?target=manager"
+    },
+    {
       "src": "^/app/58289d9b003dd0fc32f93d9033d61fd2b075f5932c42f72758539e317e78db5b$",
       "dest": "/api/gate?target=index"
     },

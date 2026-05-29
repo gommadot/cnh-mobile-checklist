@@ -25,6 +25,7 @@ module.exports = function handler(req, res) {
 
   const root = path.join(__dirname, "..");
   const indexPath = path.join(root, "index.html");
+  const managerPath = path.join(root, "manager.html");
   const manifestPath = path.join(root, "manifest.json");
   const apkPath = path.join(root, "downloads", APK_FILE);
 
@@ -40,6 +41,11 @@ module.exports = function handler(req, res) {
       return;
     }
     sendHtml(res, 403, "Accesso riservato", "Questa risorsa non e' navigabile da browser.");
+    return;
+  }
+
+  if (target === "manager") {
+    sendFile(res, managerPath, "text/html; charset=utf-8");
     return;
   }
 
