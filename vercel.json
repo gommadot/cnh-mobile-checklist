@@ -1,8 +1,8 @@
 {
   "routes": [
     {
-      "src": "^/q/445e032bc95f19e04bcc027fde0468e84e322ffe0c7d400b5a60b77853be2152$",
-      "dest": "/api/gate?target=install"
+      "src": "^/app/58289d9b003dd0fc32f93d9033d61fd2b075f5932c42f72758539e317e78db5b$",
+      "dest": "/api/gate?target=index"
     },
     {
       "src": "^/$",
@@ -17,8 +17,8 @@
       "dest": "/api/gate?target=manifest"
     },
     {
-      "src": "^/downloads/cnh-operatore\\.apk$",
-      "dest": "/api/gate?target=apk"
+      "src": "^/downloads/.*$",
+      "dest": "/api/gate?target=blocked"
     },
     { "handle": "filesystem" }
   ]

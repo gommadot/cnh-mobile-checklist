@@ -11,7 +11,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://mobile-static.vercel.app";
+    private static final String APP_URL = "https://mobile-static.vercel.app/app/58289d9b003dd0fc32f93d9033d61fd2b075f5932c42f72758539e317e78db5b";
     private static final String APP_UA_TOKEN = "CNHOperatoreApp-3ae27ce600615c19e60f9e0fa78cc2b9f6c99642d94be739";
     private WebView webView;
 

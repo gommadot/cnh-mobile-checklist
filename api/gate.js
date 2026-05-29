@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-const INSTALL_PATH = "/q/445e032bc95f19e04bcc027fde0468e84e322ffe0c7d400b5a60b77853be2152";
 const APP_UA_TOKEN = "CNHOperatoreApp-3ae27ce600615c19e60f9e0fa78cc2b9f6c99642d94be739";
 
 function sendHtml(res, status, title, detail) {
@@ -20,45 +19,19 @@ function sendFile(res, filePath, contentType) {
 module.exports = function handler(req, res) {
   const ua = req.headers["user-agent"] || "";
   const isAndroid = /Android/i.test(ua);
-  const isIos = /iPhone|iPad|iPod/i.test(ua);
   const isApp = ua.includes(APP_UA_TOKEN);
   const target = req.query.target || "";
 
   const root = path.join(__dirname, "..");
   const indexPath = path.join(root, "index.html");
   const manifestPath = path.join(root, "manifest.json");
-  const apkPath = path.join(root, "downloads", "cnh-operatore.apk");
-
-  if (target === "install") {
-    if (isAndroid) {
-      res.statusCode = 302;
-      res.setHeader("location", "/downloads/cnh-operatore.apk");
-      res.end();
-      return;
-    }
-    if (isIos) {
-      sendFile(res, indexPath, "text/html; charset=utf-8");
-      return;
-    }
-    sendHtml(res, 200, "Apri dal telefono", "Scansiona questo QR con Android per scaricare l'APK o con iPhone per aprire l'app web.");
-    return;
-  }
-
-  if (target === "apk") {
-    if (isAndroid || isApp) {
-      sendFile(res, apkPath, "application/vnd.android.package-archive");
-      return;
-    }
-    sendHtml(res, 403, "Download non disponibile", "L'APK si scarica solo aprendo il QR da un telefono Android.");
-    return;
-  }
 
   if (target === "manifest") {
     if (isApp) {
       sendFile(res, manifestPath, "application/manifest+json; charset=utf-8");
       return;
     }
-    sendHtml(res, 403, "Accesso riservato", "Apri il QR autorizzato da telefono.");
+    sendHtml(res, 403, "Accesso riservato", "Questa risorsa non e' navigabile da browser.");
     return;
   }
 
@@ -67,8 +40,8 @@ module.exports = function handler(req, res) {
     return;
   }
   if (isAndroid) {
-    sendHtml(res, 403, "Installa l'app", "Su Android questa app funziona solo tramite APK. Apri il QR autorizzato per scaricarla.");
+    sendHtml(res, 403, "App richiesta", "Su Android questa applicazione funziona solo tramite APK aziendale.");
     return;
   }
-  sendHtml(res, 403, "Accesso riservato", `Apri il QR autorizzato da telefono: ${INSTALL_PATH}`);
+  sendHtml(res, 403, "Accesso riservato", "Questa risorsa non e' navigabile da browser.");
 };
