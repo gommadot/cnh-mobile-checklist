@@ -1,24 +1,25 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/q/445e032bc95f19e04bcc027fde0468e84e322ffe0c7d400b5a60b77853be2152",
-      "destination": "/api/gate?target=install"
-    },
-    { "source": "/", "destination": "/api/gate?target=index" },
-    { "source": "/index.html", "destination": "/api/gate?target=index" },
-    { "source": "/manifest.json", "destination": "/api/gate?target=manifest" },
-    { "source": "/downloads/cnh-operatore.apk", "destination": "/api/gate?target=apk" }
-  ],
-  "headers": [
-    {
-      "source": "/manifest.json",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=300" }]
+      "src": "^/q/445e032bc95f19e04bcc027fde0468e84e322ffe0c7d400b5a60b77853be2152$",
+      "dest": "/api/gate?target=install"
     },
     {
-      "source": "/",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=60, must-revalidate" }]
-    }
+      "src": "^/$",
+      "dest": "/api/gate?target=index"
+    },
+    {
+      "src": "^/index\\.html$",
+      "dest": "/api/gate?target=index"
+    },
+    {
+      "src": "^/manifest\\.json$",
+      "dest": "/api/gate?target=manifest"
+    },
+    {
+      "src": "^/downloads/cnh-operatore\\.apk$",
+      "dest": "/api/gate?target=apk"
+    },
+    { "handle": "filesystem" }
   ]
 }
