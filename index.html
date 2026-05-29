@@ -129,12 +129,6 @@
         letter-spacing: 0.4px; flex-shrink: 0; line-height: 1.2;
       }
       .card.complete .pline { background: var(--green); }
-      .priority-pill {
-        display: inline-flex; align-items: center; padding: 2px 6px;
-        border-radius: 4px; font-size: 9.5px; font-weight: 900;
-        background: var(--amber-bg); color: var(--amber); border: 1px solid #fde68a;
-        line-height: 1.4; white-space: nowrap;
-      }
       .id-block {
         min-width: 0;
         display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 5px;
@@ -659,7 +653,6 @@
             ? `<span class="state-chip" title="${escapeHtml(state)}">${escapeHtml(state)}</span>`
             : "";
           const sectionChip = `<span class="section-chip ${label.cls}">${label.text}</span>`;
-          const priorityPill = priority ? `<span class="priority-pill">Prioritaria</span>` : "";
           const secondaryInline = secondary ? `<span class="id-secondary">${secondary}</span>` : "";
           const repeatNote = repeatMode
             ? `<div class="note">Ultimo pre-shipment ${repeatAge} giorni fa. Conferma nuovamente solo il pre-shipment.</div>`
@@ -676,7 +669,6 @@
                 <div class="card-meta-row">
                   ${stateChip}
                   ${sectionChip}
-                  ${priorityPill}
                 </div>
               </div>
               <div class="check-row ${repeatMode ? "repeat-only" : ""}">
