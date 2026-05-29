@@ -11,7 +11,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String APP_URL = "https://lecce-cnh.app";
+    private static final String APP_URL = "https://mobile-static.vercel.app";
     private WebView webView;
 
     @SuppressLint("SetJavaScriptEnabled")
