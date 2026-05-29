@@ -1,6 +1,16 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/q/445e032bc95f19e04bcc027fde0468e84e322ffe0c7d400b5a60b77853be2152",
+      "destination": "/api/gate?target=install"
+    },
+    { "source": "/", "destination": "/api/gate?target=index" },
+    { "source": "/index.html", "destination": "/api/gate?target=index" },
+    { "source": "/manifest.json", "destination": "/api/gate?target=manifest" },
+    { "source": "/downloads/cnh-operatore.apk", "destination": "/api/gate?target=apk" }
+  ],
   "headers": [
     {
       "source": "/manifest.json",
