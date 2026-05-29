@@ -112,10 +112,19 @@
         border-color: #FDE68A;
         border-left-color: #F59E0B;
         border-left-width: 5px;
+        padding-right: 42px;
       }
       .card.priority.complete {
         background: #ECFDF5;
         border-left-color: var(--green);
+      }
+      .priority-badge {
+        position: absolute; top: 6px; right: 7px;
+        min-width: 28px; height: 28px; padding: 0 5px;
+        border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+        background: #111827; color: var(--white); border: 2px solid var(--white);
+        box-shadow: 0 2px 7px rgba(15,23,42,0.22);
+        font-size: 10px; font-weight: 950; line-height: 1; letter-spacing: 0.2px;
       }
       /* Riga 1: PLINE + ID + stato a destra, tutto su una sola riga compatta */
       .card-head {
@@ -553,6 +562,29 @@
         if (["0", "false", "no", "standard", "normale"].includes(text.trim())) return false;
         return /\b(top|urgent|urgente|priority|priorita|prioritaria|prio\s*1|p1)\b/.test(text) || text.trim() === "1";
       }
+      function getPriorityInfo(item) {
+        const raw = item.priority ?? item.priorita ?? item.prioritÃ  ?? item.is_priority ?? item.prioritaria ?? item.note ?? "";
+        if (typeof raw === "boolean") return raw ? { label: "1", rank: 1 } : null;
+        const text = normText(`${raw} ${item.note || ""}`).trim();
+        if (!text || ["0", "false", "no", "standard", "normale"].includes(text)) return null;
+        if (/\b(top|urgentissimo|massima)\b/.test(text)) return { label: "TOP", rank: 0 };
+        if (/\b(prio\s*1|p1|priority\s*1|priorita\s*1|prioritaria\s*1)\b/.test(text) || text === "1") return { label: "1", rank: 1 };
+        if (/\b(prio\s*2|p2|priority\s*2|priorita\s*2|prioritaria\s*2)\b/.test(text) || text === "2") return { label: "2", rank: 2 };
+        if (/\b(prio\s*3|p3|priority\s*3|priorita\s*3|prioritaria\s*3)\b/.test(text) || text === "3") return { label: "3", rank: 3 };
+        if (/\b(urgent|urgente|priority|priorita|prioritaria)\b/.test(text)) return { label: "1", rank: 1 };
+        return null;
+      }
+      isPriority = function(item) {
+        return !!getPriorityInfo(item);
+      };
+      function priorityRank(item) {
+        const info = getPriorityInfo(item);
+        return info ? info.rank : 99;
+      }
+      function priorityLabel(item) {
+        const info = getPriorityInfo(item);
+        return info ? info.label : "";
+      }
       function getState(item) {
         return String(item.stato || item.status || item.stato_descrizione || item.stato_codice || "").trim();
       }
@@ -587,7 +619,7 @@
 
       function sortItems(arr) {
         return arr.slice().sort((a, b) => {
-          const pri = Number(isPriority(b)) - Number(isPriority(a));
+          const pri = priorityRank(a) - priorityRank(b);
           if (pri !== 0) return pri;
           const da = a.preshipment ? 2 : (a.verniciato ? 1 : 0);
           const db = b.preshipment ? 2 : (b.verniciato ? 1 : 0);
@@ -653,12 +685,14 @@
             ? `<span class="state-chip" title="${escapeHtml(state)}">${escapeHtml(state)}</span>`
             : "";
           const sectionChip = `<span class="section-chip ${label.cls}">${label.text}</span>`;
+          const priorityBadge = priority ? `<span class="priority-badge">${escapeHtml(priorityLabel(it))}</span>` : "";
           const secondaryInline = secondary ? `<span class="id-secondary">${secondary}</span>` : "";
           const repeatNote = repeatMode
             ? `<div class="note">Ultimo pre-shipment ${repeatAge} giorni fa. Conferma nuovamente solo il pre-shipment.</div>`
             : "";
           return `
             <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""}" data-id="${it.id}">
+              ${priorityBadge}
               <div class="card-head">
                 <span class="pline">${it.pline || "—"}</span>
                 <div class="id-block">
