@@ -20,6 +20,7 @@ function sendFile(res, filePath, contentType) {
 module.exports = function handler(req, res) {
   const ua = req.headers["user-agent"] || "";
   const isAndroid = /Android/i.test(ua);
+  const isIos = /iPhone|iPad|iPod/i.test(ua);
   const isApp = ua.includes(APP_UA_TOKEN);
   const target = req.query.target || "";
 
@@ -49,7 +50,21 @@ module.exports = function handler(req, res) {
     return;
   }
 
+  if (target === "ios") {
+    if (isIos) {
+      res.setHeader("set-cookie", "cnh_ios_app=1; Path=/; Max-Age=31536000; Secure; SameSite=Lax");
+      sendFile(res, indexPath, "text/html; charset=utf-8");
+      return;
+    }
+    sendHtml(res, 200, "Apri da iPhone", "Questo link installa la web app iOS. Aprilo da Safari su iPhone, poi usa Condividi e Aggiungi alla schermata Home.");
+    return;
+  }
+
   if (isApp) {
+    sendFile(res, indexPath, "text/html; charset=utf-8");
+    return;
+  }
+  if ((req.headers.cookie || "").includes("cnh_ios_app=1") && isIos) {
     sendFile(res, indexPath, "text/html; charset=utf-8");
     return;
   }

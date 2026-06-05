@@ -256,6 +256,39 @@
       }
       .toast.show { transform: translateX(-50%) translateY(0); }
       .toast.error { background: var(--red); }
+      .ios-install {
+        position: fixed; inset: 0; z-index: 120; display: none;
+        background: rgba(15,23,42,0.62); padding: 18px;
+        align-items: center; justify-content: center;
+      }
+      .ios-install.show { display: flex; }
+      .ios-card {
+        width: min(420px, 100%); background: var(--white); border-radius: 16px;
+        box-shadow: 0 22px 58px rgba(15,23,42,0.35); overflow: hidden;
+        border: 1px solid rgba(15,23,42,0.08);
+      }
+      .ios-head { background: var(--red); color: var(--white); padding: 16px 18px; }
+      .ios-head h2 { margin: 0; font-size: 19px; }
+      .ios-head p { margin: 5px 0 0; font-size: 12px; opacity: 0.9; }
+      .ios-body { padding: 16px 18px 18px; }
+      .ios-step {
+        display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start;
+        padding: 10px 0; border-bottom: 1px solid var(--grey-line);
+      }
+      .ios-step:last-child { border-bottom: 0; }
+      .ios-num {
+        width: 26px; height: 26px; border-radius: 50%; background: var(--soft);
+        display: inline-flex; align-items: center; justify-content: center;
+        color: var(--red); font-weight: 900; font-size: 13px;
+      }
+      .ios-step b { display: block; font-size: 14px; color: var(--ink); }
+      .ios-step span { display: block; margin-top: 2px; font-size: 12px; color: var(--grey); line-height: 1.35; }
+      .ios-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 14px; }
+      .ios-actions button {
+        min-height: 44px; border-radius: 10px; border: 1px solid var(--grey-line);
+        background: var(--soft); color: var(--ink); font-weight: 800;
+      }
+      .ios-actions .primary { background: var(--red); border-color: var(--red); color: var(--white); }
       .modal-backdrop {
         position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
         backdrop-filter: blur(2px); display: none;
@@ -423,6 +456,33 @@
 
     <div class="toast" id="toast"></div>
 
+    <div class="ios-install" id="iosInstall">
+      <div class="ios-card" role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+        <div class="ios-head">
+          <h2 id="iosTitle">Installa app operatore</h2>
+          <p>Aggiungila alla schermata Home per usarla come app iOS.</p>
+        </div>
+        <div class="ios-body">
+          <div class="ios-step">
+            <div class="ios-num">1</div>
+            <div><b>Tocca Condividi</b><span>In Safari usa l'icona quadrata con la freccia verso l'alto.</span></div>
+          </div>
+          <div class="ios-step">
+            <div class="ios-num">2</div>
+            <div><b>Aggiungi alla schermata Home</b><span>Scorri il menu e scegli questa voce.</span></div>
+          </div>
+          <div class="ios-step">
+            <div class="ios-num">3</div>
+            <div><b>Apri dall'icona</b><span>Da quel momento l'app parte senza barra Safari.</span></div>
+          </div>
+          <div class="ios-actions">
+            <button class="primary" id="iosContinueBtn" type="button">Continua in Safari</button>
+            <button id="iosHideBtn" type="button">Non mostrare ora</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="side-panel" id="historyPanel">
       <aside class="panel" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
         <div class="panel-head">
@@ -502,6 +562,9 @@
         historyTot: document.getElementById("historyTot"),
         historyVern: document.getElementById("historyVern"),
         historyPre: document.getElementById("historyPre"),
+        iosInstall: document.getElementById("iosInstall"),
+        iosContinue: document.getElementById("iosContinueBtn"),
+        iosHide: document.getElementById("iosHideBtn"),
       };
       let items = [];
       let activeSection = "todo";
@@ -903,9 +966,24 @@
           document.getElementById("opName").textContent = opName;
         }
       });
+      function maybeShowIosInstall() {
+        const ua = navigator.userAgent || "";
+        const isIos = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const isStandalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+        const hidden = sessionStorage.getItem("cnh-ios-install-hidden") === "1";
+        if (isIos && !isStandalone && !hidden) {
+          setTimeout(() => els.iosInstall.classList.add("show"), 700);
+        }
+      }
+      els.iosContinue.addEventListener("click", () => els.iosInstall.classList.remove("show"));
+      els.iosHide.addEventListener("click", () => {
+        sessionStorage.setItem("cnh-ios-install-hidden", "1");
+        els.iosInstall.classList.remove("show");
+      });
 
       // === Init + polling fallback =============================================
       els.processedDate.value = formatDateInput(new Date());
+      maybeShowIosInstall();
       loadList();
       setInterval(loadList, 30000);
       document.addEventListener("visibilitychange", () => {

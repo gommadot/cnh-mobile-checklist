@@ -9,6 +9,10 @@
       "dest": "/api/gate?target=index"
     },
     {
+      "src": "^/ios/889be203ab049c92f4deb941d93d9c05882cc840ccb41efc$",
+      "dest": "/api/gate?target=ios"
+    },
+    {
       "src": "^/$",
       "dest": "/api/gate?target=index"
     },
