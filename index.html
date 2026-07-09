@@ -175,9 +175,14 @@
       .stats .stat.priority .stat-ico { color: var(--amber); }
       .stats .stat.total .stat-ico { color: var(--ink); }
       .stats .stat.done .stat-ico { color: var(--green); }
-      .stats .stat.done { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 100ms ease; }
-      .stats .stat.done:active { transform: scale(0.96); }
+      .stats .stat.total, .stats .stat.priority, .stats .stat.done {
+        cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 100ms ease;
+      }
+      .stats .stat.total:active, .stats .stat.priority:active, .stats .stat.done:active { transform: scale(0.96); }
+      .stats .stat.total.active { background: #EEF2FB; border-color: #B7C6E8; box-shadow: 0 2px 10px rgba(30,64,175,0.14); }
+      .stats .stat.priority.active { background: #FFF7ED; border-color: #FDBA74; box-shadow: 0 2px 10px rgba(180,83,9,0.16); }
       .stats .stat.done.active { background: #ECFDF5; border-color: #86EFAC; box-shadow: 0 2px 10px rgba(22,101,52,0.18); }
+      .stats .stat.priority.active .num, .stats .stat.priority.active .lbl { color: var(--amber); }
       .stats .stat.done.active .num, .stats .stat.done.active .lbl { color: var(--green); }
       main { flex: 1; padding: 8px 14px calc(98px + env(safe-area-inset-bottom)); }
       .card {
@@ -585,11 +590,11 @@
         <input type="date" id="processedDate" />
       </div>
       <div class="stats">
-        <div class="stat total">
+        <div class="stat total" id="statTotCard" role="button" tabindex="0" aria-label="Mostra tutte le unità">
           <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"></path><path d="M12 3a9 9 0 0 1 9 9h-9z"></path></svg></span>
           <div class="stat-body"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
         </div>
-        <div class="stat priority">
+        <div class="stat priority" id="statPriorityCard" role="button" tabindex="0" aria-label="Mostra unità prioritarie">
           <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9L12 3z"></path></svg></span>
           <div class="stat-body"><div class="num" id="statPriority">0</div><div class="lbl">PRIORITARIE</div></div>
         </div>
@@ -711,7 +716,9 @@
         refresh: document.getElementById("refreshBtn"),
         menu: document.getElementById("menuBtn"),
         statTot: document.getElementById("statTot"),
+        statTotCard: document.getElementById("statTotCard"),
         statPriority: document.getElementById("statPriority"),
+        statPriorityCard: document.getElementById("statPriorityCard"),
         statTodo: document.getElementById("statTodo") || { textContent: "" },
         statDone: document.getElementById("statDone"),
         statDoneCard: document.getElementById("statDoneCard"),
@@ -972,7 +979,10 @@
         els.statPriority.textContent = ordered.filter(isPriority).length;
         els.statTodo.textContent = baseFiltered.filter(i => !isComplete(i)).length;
         els.statDone.textContent = baseFiltered.filter(isComplete).length;
+        els.statTotCard.classList.toggle("active", activeSection === "todo" && !priorityOnly);
+        els.statPriorityCard.classList.toggle("active", priorityOnly);
         els.statDoneCard.classList.toggle("active", activeSection === "done");
+        els.sectionTabs.forEach(t => t.classList.toggle("active", !priorityOnly && t.dataset.section === activeSection));
         els.processedTools.classList.toggle("show", activeSection === "done" && !q);
         els.workTabsWrap.classList.toggle("hide", activeSection === "done" || !!q);
         els.scopeLine.classList.toggle("show", true);
@@ -1218,25 +1228,27 @@
         els.priorityFilter.setAttribute("aria-pressed", priorityOnly ? "true" : "false");
         renderList();
       });
-      els.sectionTabs.forEach(tab => tab.addEventListener("click", () => {
-        activeSection = tab.dataset.section;
-        els.sectionTabs.forEach(t => t.classList.toggle("active", t === tab));
+      function syncPriorityBtn() {
+        els.priorityFilter.classList.toggle("priority-on", priorityOnly);
+        els.priorityFilter.setAttribute("aria-pressed", priorityOnly ? "true" : "false");
+      }
+      function setView(section, priority) {
+        activeSection = section;
+        priorityOnly = !!priority;
+        if (section === "done") els.processedMode.value = "all";
+        syncPriorityBtn();
         renderList();
-      }));
-      els.statDoneCard.addEventListener("click", () => {
-        if (activeSection === "done") {
-          activeSection = "deliberato";
-          els.sectionTabs.forEach(t => t.classList.toggle("active", t.dataset.section === "deliberato"));
-        } else {
-          activeSection = "done";
-          els.sectionTabs.forEach(t => t.classList.remove("active"));
-          els.processedMode.value = "all";
-        }
-        renderList();
-      });
-      els.statDoneCard.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); els.statDoneCard.click(); }
-      });
+      }
+      function bindStatCard(card, handler) {
+        card.addEventListener("click", handler);
+        card.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handler(); }
+        });
+      }
+      els.sectionTabs.forEach(tab => tab.addEventListener("click", () => setView(tab.dataset.section, false)));
+      bindStatCard(els.statTotCard, () => setView("todo", false));
+      bindStatCard(els.statPriorityCard, () => setView("todo", true));
+      bindStatCard(els.statDoneCard, () => setView(activeSection === "done" ? "deliberato" : "done", false));
       els.workTabs.forEach(tab => tab.addEventListener("click", () => {
         activeWork = tab.dataset.work || "all";
         els.workTabs.forEach(t => t.classList.toggle("active", t === tab));
