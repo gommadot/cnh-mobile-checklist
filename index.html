@@ -879,7 +879,7 @@
           const sectionChip = `<span class="section-chip ${label.cls}">${label.text}</span>`;
           const priorityBadge = priority ? `<span class="priority-badge">${escapeHtml(priorityLabel(it))}</span>` : "";
           const rawNote = String(it.note || "").trim();
-          const noteIsPriority = priority && rawNote && !!priorityInfo({ note: rawNote });
+          const noteIsPriority = priority && rawNote && !!getPriorityInfo({ note: rawNote });
           const noteLine = rawNote && !noteIsPriority ? `<div class="note">${escapeHtml(rawNote)}</div>` : "";
           const secondaryInline = secondary ? `<span class="id-secondary">${secondary}</span>` : "";
           const repeatNote = repeatMode
