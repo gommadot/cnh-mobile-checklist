@@ -144,7 +144,7 @@
         border-radius: 8px; font-size: 13px; background: var(--white); color: var(--ink);
       }
       .stats {
-        display: grid; grid-template-columns: repeat(4, 1fr);
+        display: grid; grid-template-columns: repeat(3, 1fr);
         gap: 8px; padding: 8px 14px 12px; background: #FFFFFF;
         border-bottom: 1px solid #EDF1F6;
       }
@@ -511,11 +511,9 @@
         .check-ico { width: 16px; height: 16px; }
       }
       @media (min-width: 460px) {
-        .section-tabs { grid-template-columns: repeat(4, 1fr); }
-        .section-tab { padding: 6px 8px; font-size: clamp(10px, 2vw, 12px); }
+        .section-tab { font-size: clamp(11px, 2vw, 13px); }
       }
       @media (max-width: 340px) {
-        .stats { grid-template-columns: repeat(2, 1fr); }
         .toolbar { grid-template-columns: 1fr; }
         .toolbar select { width: 100%; }
       }
@@ -570,10 +568,8 @@
       </div>
       </div>
       <div class="section-tabs" role="tablist" aria-label="Sezioni operatore">
-        <button class="section-tab active" data-section="todo" type="button"><span>Da fare</span><b class="tab-count" id="tabTodoCount">0</b></button>
-        <button class="section-tab" data-section="deliberato" type="button"><span>Deliberato</span><b class="tab-count" id="tabDelibCount">0</b></button>
+        <button class="section-tab active" data-section="deliberato" type="button"><span>Deliberato</span><b class="tab-count" id="tabDelibCount">0</b></button>
         <button class="section-tab" data-section="fine-linea" type="button"><span>Fine linea</span><b class="tab-count" id="tabLineCount">0</b></button>
-        <button class="section-tab" data-section="done" type="button"><span>Processate</span><b class="tab-count" id="tabDoneCount">0</b></button>
       </div>
       <div class="processed-tools" id="processedTools">
         <select id="processedMode" aria-label="Filtro processate">
@@ -585,17 +581,13 @@
         <input type="date" id="processedDate" />
       </div>
       <div class="stats">
-        <div class="stat todo">
-          <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"></rect><path d="M9 4h6v3H9z"></path><path d="M9 11h6M9 15h4"></path></svg></span>
-          <div class="stat-body"><div class="num" id="statTodo">0</div><div class="lbl">DA FARE</div></div>
+        <div class="stat total">
+          <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"></path><path d="M12 3a9 9 0 0 1 9 9h-9z"></path></svg></span>
+          <div class="stat-body"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
         </div>
         <div class="stat priority">
           <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9L12 3z"></path></svg></span>
           <div class="stat-body"><div class="num" id="statPriority">0</div><div class="lbl">PRIORITARIE</div></div>
-        </div>
-        <div class="stat total">
-          <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"></path><path d="M12 3a9 9 0 0 1 9 9h-9z"></path></svg></span>
-          <div class="stat-body"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
         </div>
         <div class="stat done">
           <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg></span>
@@ -716,12 +708,12 @@
         menu: document.getElementById("menuBtn"),
         statTot: document.getElementById("statTot"),
         statPriority: document.getElementById("statPriority"),
-        statTodo: document.getElementById("statTodo"),
+        statTodo: document.getElementById("statTodo") || { textContent: "" },
         statDone: document.getElementById("statDone"),
-        tabTodoCount: document.getElementById("tabTodoCount"),
+        tabTodoCount: document.getElementById("tabTodoCount") || { textContent: "" },
         tabDelibCount: document.getElementById("tabDelibCount"),
         tabLineCount: document.getElementById("tabLineCount"),
-        tabDoneCount: document.getElementById("tabDoneCount"),
+        tabDoneCount: document.getElementById("tabDoneCount") || { textContent: "" },
         toast: document.getElementById("toast"),
         historyPanel: document.getElementById("historyPanel"),
         historyClose: document.getElementById("historyCloseBtn"),
@@ -736,7 +728,7 @@
         iosHide: document.getElementById("iosHideBtn"),
       };
       let items = [];
-      let activeSection = "todo";
+      let activeSection = "deliberato";
       let activeWork = "all";
       let priorityOnly = false;
 
@@ -971,10 +963,10 @@
           return true;
         });
         const ordered = sortItems(filtered);
-        els.statTot.textContent = ordered.length;
-        els.statPriority.textContent = ordered.filter(isPriority).length;
-        els.statTodo.textContent = ordered.filter(i => !isComplete(i)).length;
-        els.statDone.textContent = ordered.filter(isComplete).length;
+        els.statTot.textContent = baseFiltered.length;
+        els.statPriority.textContent = baseFiltered.filter(isPriority).length;
+        els.statTodo.textContent = baseFiltered.filter(i => !isComplete(i)).length;
+        els.statDone.textContent = baseFiltered.filter(isComplete).length;
         els.processedTools.classList.toggle("show", activeSection === "done" && !q);
         els.workTabsWrap.classList.toggle("hide", activeSection === "done" || !!q);
         els.scopeLine.classList.toggle("show", true);
