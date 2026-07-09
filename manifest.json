@@ -1,11 +1,15 @@
 {
-  "name": "VERNICIATURE E PRE-SHIPMENT",
-  "short_name": "Checklist",
+  "name": "CNHi Painting",
+  "short_name": "CNHi Painting",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#C00000",
+  "background_color": "#FFFFFF",
   "theme_color": "#C00000",
-  "description": "Checklist macchine prioritarie - CNH Plant LE01",
-  "lang": "it"
+  "description": "CNHi Painting - Verniciatura e Pre-shipment - Plant LE01",
+  "lang": "it",
+  "icons": [
+    { "src": "/icons/icon-192.png?v=1", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png?v=1", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
 }

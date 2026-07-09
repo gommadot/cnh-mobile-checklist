@@ -6,9 +6,14 @@
     <meta name="theme-color" content="#C00000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Checklist" />
-    <title>Verniciatura e Pre-shipment</title>
+    <meta name="apple-mobile-web-app-title" content="CNHi Painting" />
+    <title>CNHi Painting</title>
     <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=1" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png?v=1" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png?v=1" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon-120.png?v=1" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=1" />
     <style>
       :root {
         --red: #C00000; --red-dark: #8B0000; --ink: #0F172A; --ink-soft: #334055;
@@ -32,27 +37,27 @@
       header {
         position: relative; z-index: 1;
         background: var(--red); color: var(--white);
-        padding: calc(env(safe-area-inset-top) + 14px) 14px 16px;
+        padding: calc(env(safe-area-inset-top) + 9px) 14px 10px;
         box-shadow: 0 2px 10px rgba(15,23,42,0.18);
       }
-      .header-row { display: grid; grid-template-columns: 42px 1fr auto; align-items: center; gap: 12px; }
+      .header-row { display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 10px; }
       .header-title { flex: 1; min-width: 0; }
-      header h1 { margin: 0; font-size: clamp(18px, 4.8vw, 20px); font-weight: 900; letter-spacing: -0.1px; }
-      header .subtitle { margin-top: 3px; font-size: clamp(12px, 3.4vw, 13px); opacity: 0.9; font-weight: 650; }
+      header h1 { margin: 0; font-size: clamp(16px, 4.3vw, 18px); font-weight: 900; letter-spacing: -0.1px; line-height: 1.1; }
+      header .subtitle { margin-top: 1px; font-size: clamp(10.5px, 3vw, 12px); opacity: 0.9; font-weight: 650; }
       .menu-btn {
-        width: 42px; height: 42px; border: 0;
+        width: 36px; height: 36px; border: 0;
         border-radius: 50%; background: rgba(255,255,255,0.13); color: var(--white);
-        font-size: 26px; line-height: 1; display: inline-flex; align-items: center;
+        font-size: 22px; line-height: 1; display: inline-flex; align-items: center;
         justify-content: center; cursor: pointer; flex-shrink: 0;
       }
       .menu-btn:active { transform: scale(0.96); }
       .header-actions { display: inline-flex; align-items: center; gap: 12px; }
       .header-icon {
-        width: 34px; height: 34px; border: 0; background: transparent; color: #fff;
+        width: 32px; height: 32px; border: 0; background: transparent; color: #fff;
         display: inline-flex; align-items: center; justify-content: center; padding: 0;
         position: relative;
       }
-      .header-icon svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 2.35; fill: none; }
+      .header-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.35; fill: none; }
       .header-icon.priority-on::before,
       .header-icon.has-dot::before {
         content: ""; position: absolute; top: 4px; right: 3px;
@@ -354,9 +359,11 @@
         background: var(--ink); color: var(--white);
         padding: 12px 20px; border-radius: 24px; font-size: 13px; font-weight: 600;
         box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-        transition: transform 250ms ease; z-index: 60; max-width: 90%;
+        opacity: 0; visibility: hidden; pointer-events: none;
+        transition: transform 250ms ease, opacity 220ms ease, visibility 220ms ease;
+        z-index: 60; max-width: 90%;
       }
-      .toast.show { transform: translateX(-50%) translateY(0); }
+      .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; }
       .toast.error { background: var(--red); }
       .ios-install {
         position: fixed; inset: 0; z-index: 120; display: none;
@@ -535,7 +542,7 @@
         <div class="header-row">
           <button class="menu-btn" id="menuBtn" type="button" aria-label="Menu">&#9776;</button>
           <div class="header-title">
-            <h1>Checklist Operatore</h1>
+            <h1>CNHi Painting</h1>
             <div class="subtitle">Macchine prioritarie - Plant LE01</div>
           </div>
           <div class="header-actions">
