@@ -175,6 +175,10 @@
       .stats .stat.priority .stat-ico { color: var(--amber); }
       .stats .stat.total .stat-ico { color: var(--ink); }
       .stats .stat.done .stat-ico { color: var(--green); }
+      .stats .stat.done { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 100ms ease; }
+      .stats .stat.done:active { transform: scale(0.96); }
+      .stats .stat.done.active { background: #ECFDF5; border-color: #86EFAC; box-shadow: 0 2px 10px rgba(22,101,52,0.18); }
+      .stats .stat.done.active .num, .stats .stat.done.active .lbl { color: var(--green); }
       main { flex: 1; padding: 8px 14px calc(98px + env(safe-area-inset-bottom)); }
       .card {
         background: var(--white); border-radius: 13px;
@@ -589,7 +593,7 @@
           <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9L12 3z"></path></svg></span>
           <div class="stat-body"><div class="num" id="statPriority">0</div><div class="lbl">PRIORITARIE</div></div>
         </div>
-        <div class="stat done">
+        <div class="stat done" id="statDoneCard" role="button" tabindex="0" aria-label="Mostra unità completate">
           <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg></span>
           <div class="stat-body"><div class="num" id="statDone">0</div><div class="lbl">COMPLETI</div></div>
         </div>
@@ -710,6 +714,7 @@
         statPriority: document.getElementById("statPriority"),
         statTodo: document.getElementById("statTodo") || { textContent: "" },
         statDone: document.getElementById("statDone"),
+        statDoneCard: document.getElementById("statDoneCard"),
         tabTodoCount: document.getElementById("tabTodoCount") || { textContent: "" },
         tabDelibCount: document.getElementById("tabDelibCount"),
         tabLineCount: document.getElementById("tabLineCount"),
@@ -963,10 +968,11 @@
           return true;
         });
         const ordered = sortItems(filtered);
-        els.statTot.textContent = baseFiltered.length;
-        els.statPriority.textContent = baseFiltered.filter(isPriority).length;
+        els.statTot.textContent = ordered.length;
+        els.statPriority.textContent = ordered.filter(isPriority).length;
         els.statTodo.textContent = baseFiltered.filter(i => !isComplete(i)).length;
         els.statDone.textContent = baseFiltered.filter(isComplete).length;
+        els.statDoneCard.classList.toggle("active", activeSection === "done");
         els.processedTools.classList.toggle("show", activeSection === "done" && !q);
         els.workTabsWrap.classList.toggle("hide", activeSection === "done" || !!q);
         els.scopeLine.classList.toggle("show", true);
@@ -1217,6 +1223,20 @@
         els.sectionTabs.forEach(t => t.classList.toggle("active", t === tab));
         renderList();
       }));
+      els.statDoneCard.addEventListener("click", () => {
+        if (activeSection === "done") {
+          activeSection = "deliberato";
+          els.sectionTabs.forEach(t => t.classList.toggle("active", t.dataset.section === "deliberato"));
+        } else {
+          activeSection = "done";
+          els.sectionTabs.forEach(t => t.classList.remove("active"));
+          els.processedMode.value = "all";
+        }
+        renderList();
+      });
+      els.statDoneCard.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); els.statDoneCard.click(); }
+      });
       els.workTabs.forEach(tab => tab.addEventListener("click", () => {
         activeWork = tab.dataset.work || "all";
         els.workTabs.forEach(t => t.classList.toggle("active", t === tab));
