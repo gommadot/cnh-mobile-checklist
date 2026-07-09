@@ -60,11 +60,14 @@
         border: 2px solid var(--red);
       }
       .header-icon.priority-on { background: rgba(255,255,255,0.16); border-radius: 50%; }
+      .topbar {
+        position: sticky; top: 0; z-index: 70;
+        background: #FFFFFF;
+        box-shadow: 0 10px 20px -14px rgba(15,23,42,0.35);
+      }
       .toolbar {
-        display: grid; grid-template-columns: minmax(0, 1fr) minmax(132px, auto); gap: 10px; padding: 13px 14px 10px;
-        background: rgba(255,255,255,0.98); border-bottom: 0;
-        position: sticky; top: 0; z-index: 60;
-        backdrop-filter: blur(10px);
+        display: grid; grid-template-columns: minmax(0, 1fr) minmax(126px, auto); gap: 10px; padding: 12px 14px 9px;
+        background: #FFFFFF; border-bottom: 0;
       }
       .toolbar input[type="search"], .toolbar select {
         width: 100%; height: 44px; padding: 0 14px; border: 1px solid #E2E8F0;
@@ -87,8 +90,7 @@
       }
       .section-tabs {
         display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px;
-        padding: 9px 14px; background: rgba(255,255,255,0.98); border-bottom: 0;
-        position: sticky; top: 67px; z-index: 45;
+        padding: 3px 14px 11px; background: #FFFFFF; border-bottom: 0;
       }
       .section-tab {
         border: 1px solid #E3E8F0; border-radius: 11px; background: #FFFFFF;
@@ -104,14 +106,17 @@
       .tab-count {
         min-width: 26px; height: 25px; padding: 0 7px; border-radius: 9px;
         display: inline-flex; align-items: center; justify-content: center;
-        background: #F8FAFC; color: var(--ink); border: 1px solid #E2E8F0;
+        background: #F1F5F9; color: var(--ink); border: 1px solid #E2E8F0;
         font-size: 12px; font-weight: 900;
       }
+      .section-tab[data-section="todo"] .tab-count { background: #FFE4E6; color: var(--red); border-color: #FECDD3; }
+      .section-tab[data-section="deliberato"] .tab-count { background: var(--amber-bg); color: #B45309; border-color: #FDE68A; }
+      .section-tab[data-section="fine-linea"] .tab-count { background: var(--green-bg); color: var(--green); border-color: #BBF7D0; }
+      .section-tab[data-section="done"] .tab-count { background: var(--blue-bg); color: var(--blue); border-color: #BAE6FD; }
       .section-tab.active .tab-count { background: #fff; color: var(--red); border-color: rgba(255,255,255,.75); }
       .work-tabs {
         display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
-        padding: 9px 14px; background: rgba(255,255,255,0.98); border-bottom: 0;
-        position: sticky; top: 124px; z-index: 44;
+        padding: 2px 14px 9px; background: #FFFFFF; border-bottom: 0;
       }
       .work-tabs.hide { display: none; }
       .work-tab {
@@ -130,8 +135,7 @@
       .scope-line.show { display: block; }
       .processed-tools {
         display: none; grid-template-columns: 1fr 1fr; gap: 7px;
-        padding: 7px 10px; background: var(--white); border-bottom: 1px solid var(--grey-line);
-        position: sticky; top: 124px; z-index: 44;
+        padding: 7px 14px; background: var(--white); border-bottom: 1px solid var(--grey-line);
       }
       .processed-tools.show { display: grid; }
       .processed-tools select, .processed-tools input {
@@ -140,8 +144,8 @@
       }
       .stats {
         display: grid; grid-template-columns: repeat(4, 1fr);
-        gap: 8px; padding: 9px 14px 10px; background: rgba(255,255,255,0.98);
-        border-bottom: 1px solid #E2E8F0;
+        gap: 8px; padding: 8px 14px 12px; background: #FFFFFF;
+        border-bottom: 1px solid #EDF1F6;
       }
       .stat {
         text-align: center; padding: 10px 5px 9px; border-radius: 9px;
@@ -153,7 +157,24 @@
       .stat.done .num { color: var(--green); }
       .stat.todo .num { color: var(--red); }
       .stat.priority .num { color: var(--amber); }
-      main { flex: 1; padding: 8px 14px 104px; }
+      .stats .stat {
+        display: flex; align-items: center; text-align: left; gap: 7px;
+        padding: 10px 8px; border-radius: 12px; border-color: #E7EDF4;
+        box-shadow: 0 1px 3px rgba(15,23,42,0.05); min-width: 0;
+      }
+      .stats .stat .stat-body { min-width: 0; }
+      .stats .stat .num { font-size: clamp(16px, 4.8vw, 21px); }
+      .stats .stat .lbl {
+        margin-top: 3px; letter-spacing: .4px; font-size: clamp(7.5px, 2.3vw, 9px);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+      }
+      .stat-ico { width: 21px; height: 21px; flex-shrink: 0; color: var(--grey); }
+      .stat-ico svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; fill: none; }
+      .stats .stat.todo .stat-ico { color: var(--red); }
+      .stats .stat.priority .stat-ico { color: var(--amber); }
+      .stats .stat.total .stat-ico { color: var(--ink); }
+      .stats .stat.done .stat-ico { color: var(--green); }
+      main { flex: 1; padding: 8px 14px calc(98px + env(safe-area-inset-bottom)); }
       .card {
         background: var(--white); border-radius: 13px;
         padding: 13px 13px 12px 17px; margin-bottom: 10px;
@@ -163,6 +184,8 @@
         transition: transform 100ms ease;
         position: relative;
       }
+      .card.is-deliberato { border-left-color: #F59E0B; }
+      .card.is-fine-linea { border-left-color: #0EA5E9; }
       .card.complete {
         background: #F0FDF4;
         border-color: #BBF7D0;
@@ -248,32 +271,22 @@
         margin-top: 14px; font-size: 12px; font-weight: 900; color: #475569;
         text-transform: uppercase; letter-spacing: .8px;
       }
-      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+      .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px; }
       .check-row.repeat-only { grid-template-columns: 1fr; }
       .check {
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-        padding: 9px 8px; border-radius: 8px; border: 1px solid #E2E8F0;
+        padding: 11px 8px; border-radius: 12px; border: 1.5px solid #DCE5F0;
         background: var(--white); cursor: pointer; user-select: none;
-        transition: all 130ms ease; min-height: 34px;
+        transition: all 130ms ease; min-height: 46px;
       }
-      .check-main { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
+      .check-main { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; }
+      .check-ico { width: 18px; height: 18px; flex-shrink: 0; color: #1D4ED8; display: inline-flex; }
+      .check-ico svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 2; fill: none; }
       .check.next {
-        border-color: #93c5fd; background: #eff6ff;
+        border-color: #93c5fd; background: #EFF6FF;
         box-shadow: inset 0 0 0 1px rgba(37,99,235,.08);
       }
-      .check .icon {
-        width: 16px; height: 16px; border-radius: 50%;
-        border: 2px solid var(--grey); background: var(--white);
-        flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-        transition: all 130ms ease;
-      }
-      .check .icon::after {
-        content: ""; width: 9px; height: 4px;
-        border-left: 2px solid var(--white); border-bottom: 2px solid var(--white);
-        transform: rotate(-45deg) scale(0); margin-bottom: 3px;
-        transition: transform 130ms ease;
-      }
-      .check .label { font-size: 12px; font-weight: 900; color: #16406F; letter-spacing: 0.2px; }
+      .check .label { font-size: 12px; font-weight: 900; color: #1D4ED8; letter-spacing: 0.3px; }
       .check .when {
         display: block; max-width: 100%;
         font-size: 9.5px; font-weight: 800; line-height: 1.15;
@@ -283,9 +296,7 @@
         background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
         border-color: var(--green);
       }
-      .check.active .icon { border-color: var(--white); background: transparent; }
-      .check.active .icon::after { transform: rotate(-45deg) scale(1); }
-      .check.active .label { color: var(--white); }
+      .check.active .check-ico, .check.active .label { color: var(--white); }
       .check.active .when { color: rgba(255,255,255,.9); }
       .check:active { transform: scale(0.97); }
       .note {
@@ -308,8 +319,16 @@
         padding: 10px 14px env(safe-area-inset-bottom);
         display: flex; justify-content: space-between; align-items: center; z-index: 40;
       }
-      .footer-bar .user { font-size: 12px; color: var(--grey); }
-      .footer-bar .user b { color: var(--ink); }
+      .footer-bar .user { display: flex; align-items: center; gap: 9px; min-width: 0; font-size: 12px; color: var(--grey); }
+      .user-avatar {
+        width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+        background: #F1F5F9; border: 1px solid #E2E8F0; color: #64748B;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .user-avatar svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+      .user-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+      .user-role { font-size: 11px; color: var(--grey); font-weight: 700; }
+      .footer-bar .user b { color: var(--ink); font-size: 14px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 42vw; }
       .refresh-btn {
         background: var(--red); color: var(--white); border: none;
         padding: 10px 18px; border-radius: 24px; font-weight: 700; font-size: 13px;
@@ -486,6 +505,10 @@
         .id-tag { padding: 6px 8px; font-size: 10px; }
         .id-value { font-size: clamp(18px, 5.8vw, 24px); }
         .priority-badge { min-width: 44px; height: 26px; padding: 0 7px; }
+        .stats .stat { padding: 9px 6px; gap: 5px; }
+        .stat-ico { width: 18px; height: 18px; }
+        .check { padding: 10px 6px; min-height: 44px; }
+        .check-ico { width: 16px; height: 16px; }
       }
       @media (max-width: 340px) {
         .section-tabs { grid-template-columns: repeat(2, 1fr); }
@@ -497,6 +520,7 @@
   </head>
   <body>
     <div class="app">
+      <div class="topbar">
       <header>
         <div class="header-row">
           <button class="menu-btn" id="menuBtn" type="button" aria-label="Menu">&#9776;</button>
@@ -533,6 +557,7 @@
         <button class="section-tab" data-section="fine-linea" type="button"><span>Fine linea</span><b class="tab-count" id="tabLineCount">0</b></button>
         <button class="section-tab" data-section="done" type="button"><span>Processate</span><b class="tab-count" id="tabDoneCount">0</b></button>
       </div>
+      </div>
       <div class="work-tabs" id="workTabs" role="tablist" aria-label="Lavorazione richiesta">
         <button class="work-tab active" data-work="all" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2"></rect><path d="M9 8h6M9 12h6M9 16h4"></path></svg>
@@ -558,14 +583,29 @@
       </div>
       <div class="scope-line" id="scopeLine">Da fare</div>
       <div class="stats">
-        <div class="stat todo"><div class="num" id="statTodo">0</div><div class="lbl">DA FARE</div></div>
-        <div class="stat priority"><div class="num" id="statPriority">0</div><div class="lbl">PRIORITARIE</div></div>
-        <div class="stat"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
-        <div class="stat done"><div class="num" id="statDone">0</div><div class="lbl">COMPLETI</div></div>
+        <div class="stat todo">
+          <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"></rect><path d="M9 4h6v3H9z"></path><path d="M9 11h6M9 15h4"></path></svg></span>
+          <div class="stat-body"><div class="num" id="statTodo">0</div><div class="lbl">DA FARE</div></div>
+        </div>
+        <div class="stat priority">
+          <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9L12 3z"></path></svg></span>
+          <div class="stat-body"><div class="num" id="statPriority">0</div><div class="lbl">PRIORITARIE</div></div>
+        </div>
+        <div class="stat total">
+          <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"></path><path d="M12 3a9 9 0 0 1 9 9h-9z"></path></svg></span>
+          <div class="stat-body"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
+        </div>
+        <div class="stat done">
+          <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg></span>
+          <div class="stat-body"><div class="num" id="statDone">0</div><div class="lbl">COMPLETI</div></div>
+        </div>
       </div>
       <main id="list"></main>
       <div class="footer-bar">
-        <div class="user">Operatore: <b id="opName">—</b></div>
+        <div class="user">
+          <span class="user-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg></span>
+          <span class="user-text"><span class="user-role">Operatore</span><b id="opName">—</b></span>
+        </div>
         <button class="refresh-btn" id="refreshBtn" type="button">
           <span class="arr">&#x21bb;</span> Aggiorna
         </button>
@@ -983,7 +1023,7 @@
             ? `<div class="note">Ultimo pre-shipment ${repeatAge} giorni fa. Conferma nuovamente solo il pre-shipment.</div>`
             : "";
           return `
-            <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""}" data-id="${it.id}">
+            <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""} ${stateKey(it) === "deliberato" ? "is-deliberato" : stateKey(it) === "fine-linea" ? "is-fine-linea" : ""}" data-id="${it.id}">
               <div class="card-top">
                 <span class="pline">${escapeHtml(it.pline || "-")}</span>
                 ${idLabel ? `<span class="id-tag">${escapeHtml(idLabel)}</span>` : ""}
@@ -998,11 +1038,11 @@
               <div class="work-label">${escapeHtml(workLabel(it))}</div>
               <div class="check-row ${repeatMode ? "repeat-only" : ""}">
                 ${repeatMode ? "" : `<div class="check ${it.verniciato ? "active" : ""} ${workNeed(it) === "paint" ? "next" : ""}" data-action="verniciato">
-                  <span class="check-main"><span class="icon"></span><span class="label">VERNICIATO</span></span>
+                  <span class="check-main"><span class="check-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4l6 6-7.5 7.5a4 4 0 0 1-5.7 0l-.3-.3a4 4 0 0 1 0-5.7L14 4z"></path><path d="M5 20c2 0 3.5-.7 4.5-2"></path></svg></span><span class="label">VERNICIATO</span></span>
                   ${vWhen ? `<span class="when">${escapeHtml(vWhen)}</span>` : ""}
                 </div>`}
                 <div class="check ${it.preshipment ? "active" : ""} ${workNeed(it) === "pre" || repeatMode ? "next" : ""}" data-action="preshipment" data-repeat="${repeatMode ? "1" : "0"}">
-                  <span class="check-main"><span class="icon"></span><span class="label">${repeatMode ? "CONFERMA PRE-SHIPMENT" : "PRE-SHIPMENT"}</span></span>
+                  <span class="check-main"><span class="check-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v10H3z"></path><path d="M14 10h4l3 3v4h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg></span><span class="label">${repeatMode ? "CONFERMA PRE-SHIPMENT" : "PRE-SHIPMENT"}</span></span>
                   ${pWhen ? `<span class="when">${escapeHtml(pWhen)}</span>` : ""}
                 </div>
               </div>
