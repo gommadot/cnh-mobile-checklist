@@ -12,7 +12,7 @@
     <style>
       :root {
         --red: #C00000; --red-dark: #8B0000; --ink: #0F172A; --ink-soft: #334055;
-        --grey: #64748B; --grey-line: #CBD5E1; --soft: #F1F5F9; --white: #FFFFFF;
+        --grey: #64748B; --grey-line: #D7DEE8; --soft: #F5F7FA; --white: #FFFFFF;
         --green: #166534; --green-bg: #DCFCE7; --amber: #92400E; --amber-bg: #FEF3C7;
         --blue: #075985; --blue-bg: #E0F2FE;
       }
@@ -20,7 +20,7 @@
       html, body {
         margin: 0; padding: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: var(--soft); color: var(--ink);
+        background: linear-gradient(180deg, #F8FAFC 0%, #EEF2F7 100%); color: var(--ink);
         -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
         overscroll-behavior-y: contain;
       }
@@ -28,13 +28,13 @@
       header {
         position: sticky; top: 0; z-index: 50;
         background: var(--red); color: var(--white);
-        padding: env(safe-area-inset-top) 16px 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        padding: env(safe-area-inset-top) 14px 12px 10px;
+        box-shadow: 0 2px 10px rgba(15,23,42,0.18);
       }
       .header-row { display: flex; align-items: center; gap: 10px; }
       .header-title { flex: 1; min-width: 0; }
-      header h1 { margin: 12px 0 0; font-size: 18px; font-weight: 700; letter-spacing: 0.3px; }
-      header .subtitle { margin-top: 2px; font-size: 12px; opacity: 0.85; }
+      header h1 { margin: 10px 0 0; font-size: 17px; font-weight: 800; letter-spacing: 0; }
+      header .subtitle { margin-top: 2px; font-size: 11px; opacity: 0.82; font-weight: 650; }
       .menu-btn {
         width: 44px; height: 44px; border: 1px solid rgba(255,255,255,0.35);
         border-radius: 12px; background: rgba(255,255,255,0.14); color: var(--white);
@@ -44,25 +44,27 @@
       .menu-btn:active { transform: scale(0.96); }
       .toolbar {
         display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 8px 10px;
-        background: var(--white); border-bottom: 1px solid var(--grey-line);
-        position: sticky; top: 70px; z-index: 40;
+        background: rgba(255,255,255,0.98); border-bottom: 1px solid var(--grey-line);
+        position: sticky; top: 66px; z-index: 45;
+        backdrop-filter: blur(10px);
       }
       .toolbar input[type="search"], .toolbar select {
-        width: 100%; padding: 9px 10px; border: 1px solid var(--grey-line);
-        border-radius: 8px; font-size: 14px; background: var(--white); color: var(--ink);
+        width: 100%; padding: 10px 12px; border: 1px solid #C9D3E1;
+        border-radius: 999px; font-size: 14px; background: var(--white); color: var(--ink);
         -webkit-appearance: none; appearance: none;
+        box-shadow: inset 0 1px 0 rgba(15,23,42,0.03);
       }
       .toolbar input[type="search"]:focus, .toolbar select:focus {
         outline: 2px solid rgba(192,0,0,0.35); border-color: var(--red);
       }
-      .toolbar select { font-weight: 600; }
+      .toolbar select { font-weight: 800; min-width: 104px; padding-right: 24px; }
       .section-tabs {
         display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
-        padding: 7px 10px; background: var(--white); border-bottom: 1px solid var(--grey-line);
-        position: sticky; top: 126px; z-index: 38;
+        padding: 7px 10px; background: rgba(255,255,255,0.98); border-bottom: 1px solid var(--grey-line);
+        position: sticky; top: 122px; z-index: 38;
       }
       .section-tab {
-        border: 1px solid var(--grey-line); border-radius: 8px; background: var(--soft);
+        border: 1px solid #D8E0EA; border-radius: 7px; background: #F8FAFC;
         color: var(--ink-soft); min-height: 38px; font-size: 11px; font-weight: 900;
         padding: 5px 4px; line-height: 1.1;
       }
@@ -72,8 +74,8 @@
       }
       .work-tabs {
         display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
-        padding: 7px 10px; background: var(--white); border-bottom: 1px solid var(--grey-line);
-        position: sticky; top: 177px; z-index: 37;
+        padding: 7px 10px; background: rgba(255,255,255,0.98); border-bottom: 1px solid var(--grey-line);
+        position: sticky; top: 173px; z-index: 37;
       }
       .work-tabs.hide { display: none; }
       .work-tab {
@@ -84,8 +86,8 @@
         background: #0f172a; border-color: #0f172a; color: #fff;
       }
       .scope-line {
-        display: none; padding: 7px 10px; background: #fff7ed; color: #7c2d12;
-        border-bottom: 1px solid #fed7aa; font-size: 12px; font-weight: 800;
+        display: none; padding: 7px 10px; background: #FFF7ED; color: #7C2D12;
+        border-bottom: 1px solid #FED7AA; font-size: 12px; font-weight: 850;
       }
       .scope-line.show { display: block; }
       .processed-tools {
@@ -99,23 +101,24 @@
       }
       .stats {
         display: grid; grid-template-columns: repeat(4, 1fr);
-        gap: 5px; padding: 7px 10px; background: var(--white);
+        gap: 5px; padding: 7px 10px; background: rgba(255,255,255,0.98);
+        border-bottom: 1px solid #E2E8F0;
       }
       .stat {
-        text-align: center; padding: 6px 4px; border-radius: 8px;
-        background: var(--soft); border: 1px solid var(--grey-line);
+        text-align: center; padding: 7px 4px; border-radius: 7px;
+        background: #F8FAFC; border: 1px solid #E2E8F0;
       }
-      .stat .num { font-size: 19px; font-weight: 800; color: var(--ink); line-height: 1; }
+      .stat .num { font-size: 19px; font-weight: 850; color: var(--ink); line-height: 1; }
       .stat .lbl { font-size: 9.5px; color: var(--grey); margin-top: 3px; font-weight: 700; letter-spacing: 0.3px; }
       .stat.done .num { color: var(--green); }
       .stat.todo .num { color: var(--red); }
       .stat.priority .num { color: var(--amber); }
-      main { flex: 1; padding: 5px 6px 84px; }
+      main { flex: 1; padding: 7px 7px 84px; }
       .card {
-        background: var(--white); border-radius: 8px;
-        padding: 7px 8px 7px 10px; margin-bottom: 5px;
-        box-shadow: 0 1px 2px rgba(15,23,42,0.05);
-        border: 1px solid var(--grey-line);
+        background: var(--white); border-radius: 7px;
+        padding: 8px 9px 8px 10px; margin-bottom: 6px;
+        box-shadow: 0 1px 3px rgba(15,23,42,0.07);
+        border: 1px solid #DDE4EE;
         border-left: 4px solid transparent;
         transition: transform 100ms ease;
         position: relative;
@@ -126,8 +129,8 @@
         border-left-color: var(--green);
       }
       .card.priority {
-        background: #fffdfa;
-        border-color: #f2d58d;
+        background: #FFFCF2;
+        border-color: #E9C96E;
         border-left-color: #F59E0B;
         border-left-width: 5px;
       }
@@ -206,7 +209,7 @@
       .section-chip.todo { background: #fee2e2; color: var(--red); border-color: #fecaca; }
       .section-chip.repeat { background: var(--amber-bg); color: var(--amber); border-color: #fde68a; }
       .work-label {
-        margin-top: 6px; font-size: 10px; font-weight: 900; color: var(--grey);
+        margin-top: 7px; font-size: 10px; font-weight: 900; color: #475569;
         text-transform: uppercase; letter-spacing: .4px;
       }
       .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
@@ -827,10 +830,10 @@
           return true;
         });
         const ordered = sortItems(filtered);
-        els.statTot.textContent = items.length;
-        els.statPriority.textContent = items.filter(isPriority).length;
-        els.statTodo.textContent = items.filter(i => !isComplete(i)).length;
-        els.statDone.textContent = items.filter(isComplete).length;
+        els.statTot.textContent = ordered.length;
+        els.statPriority.textContent = ordered.filter(isPriority).length;
+        els.statTodo.textContent = ordered.filter(i => !isComplete(i)).length;
+        els.statDone.textContent = ordered.filter(isComplete).length;
         els.processedTools.classList.toggle("show", activeSection === "done" && !q);
         els.workTabsWrap.classList.toggle("hide", activeSection === "done" || !!q);
         els.scopeLine.classList.toggle("show", true);
@@ -875,6 +878,9 @@
             : "";
           const sectionChip = `<span class="section-chip ${label.cls}">${label.text}</span>`;
           const priorityBadge = priority ? `<span class="priority-badge">${escapeHtml(priorityLabel(it))}</span>` : "";
+          const rawNote = String(it.note || "").trim();
+          const noteIsPriority = priority && rawNote && !!priorityInfo({ note: rawNote });
+          const noteLine = rawNote && !noteIsPriority ? `<div class="note">${escapeHtml(rawNote)}</div>` : "";
           const secondaryInline = secondary ? `<span class="id-secondary">${secondary}</span>` : "";
           const repeatNote = repeatMode
             ? `<div class="note">Ultimo pre-shipment ${repeatAge} giorni fa. Conferma nuovamente solo il pre-shipment.</div>`
@@ -903,7 +909,7 @@
                   <span class="icon"></span><span class="label">${repeatMode ? "CONFERMA PRE-SHIPMENT" : "PRE-SHIPMENT"}</span>
                 </div>
               </div>
-              ${it.note ? `<div class="note">${it.note}</div>` : ""}
+              ${noteLine}
               ${repeatNote}
               ${tsLine}
             </div>`;
