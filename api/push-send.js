@@ -36,8 +36,12 @@ module.exports = async function handler(req, res) {
     if (!PUSH_SECRET || secret !== PUSH_SECRET) { res.statusCode = 401; res.end("unauthorized"); return; }
     const role = ["paint", "pre"].includes(body.role) ? body.role : null;
     if (!role) { res.statusCode = 400; res.end("bad role"); return; }
+    const op = body.op ? String(body.op).slice(0, 80) : "";
 
-    const q = SB_URL + "/rest/v1/push_subscriptions?select=endpoint,p256dh,auth&or=(role.eq." + role + ",role.eq.all)";
+    // Target: un operatore specifico (op) oppure tutta la squadra del reparto (role) + gli "all".
+    const q = op
+      ? SB_URL + "/rest/v1/push_subscriptions?select=endpoint,p256dh,auth&op_name=eq." + encodeURIComponent(op)
+      : SB_URL + "/rest/v1/push_subscriptions?select=endpoint,p256dh,auth&or=(role.eq." + role + ",role.eq.all)";
     const r = await fetch(q, { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } });
     const subs = r.ok ? await r.json() : [];
 

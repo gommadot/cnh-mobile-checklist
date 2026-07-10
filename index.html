@@ -1416,8 +1416,9 @@
       }
       function onSollecito(p) {
         if (!p || !p.unitId) return;
+        if (p.op && String(p.op) !== String(opName)) return; // sollecito mirato ad un altro operatore
         const role = p.role || "all";
-        if (opRole && opRole !== "all" && role !== "all" && role !== opRole) return; // non e' per il mio reparto
+        if (!p.op && opRole && opRole !== "all" && role !== "all" && role !== opRole) return; // non e' per il mio reparto
         const work = role === "pre" ? "Pre-shipment" : "Verniciatura";
         const notif = { unitId: p.unitId, ident: p.ident || "-", pline: p.pline || "-", role, work, by: p.by || "Ufficio", ts: p.ts || Date.now(), read: false };
         notifs = notifs.filter(n => !(n.unitId === notif.unitId && n.role === notif.role));

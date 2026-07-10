@@ -2,670 +2,448 @@
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#111827" />
-    <title>Manager Verniciatura</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0F172A" />
+    <title>Admin · CNHi Painting</title>
+    <link rel="stylesheet" href="/fa-lite.css" />
     <style>
       :root {
-        --red: #c00000; --red-soft: #fee2e2; --ink: #111827; --muted: #667085;
-        --line: #d8dee8; --bg: #eef2f6; --paper: #ffffff; --green: #15803d;
-        --green-soft: #dcfce7; --amber: #b45309; --amber-soft: #fef3c7;
-        --blue: #0369a1; --blue-soft: #e0f2fe; --violet: #6d28d9; --violet-soft: #ede9fe;
+        --red:#C00000; --ink:#0F172A; --ink2:#334055; --grey:#64748B; --line:#E2E8F0;
+        --soft:#F5F7FA; --white:#FFF; --green:#166534; --green-bg:#DCFCE7; --amber:#B45309;
+        --amber-bg:#FEF3C7; --blue:#075985; --blue-bg:#E0F2FE;
       }
-      * { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        -webkit-font-smoothing: antialiased;
-      }
-      button, input, select { font: inherit; }
-      header {
-        position: sticky; top: 0; z-index: 30; background: var(--ink); color: #fff;
-        padding: calc(env(safe-area-inset-top) + 12px) 14px 12px;
-        box-shadow: 0 2px 18px rgba(17,24,39,0.24);
-      }
-      .topline { display: flex; align-items: center; gap: 10px; }
-      .title { flex: 1; min-width: 0; }
-      h1 { margin: 0; font-size: 19px; line-height: 1.1; font-weight: 900; }
-      .subtitle { margin-top: 4px; color: #cbd5e1; font-size: 12px; }
-      .icon-btn {
-        width: 42px; height: 42px; border: 1px solid rgba(255,255,255,0.28);
-        border-radius: 8px; background: rgba(255,255,255,0.08); color: #fff;
-        font-size: 21px; font-weight: 900;
-      }
-      .updated { margin-top: 9px; color: #cbd5e1; font-size: 11px; }
-      .wrap { max-width: 1180px; margin: 0 auto; padding: 12px 10px 92px; }
-      .filters {
-        display: grid; grid-template-columns: 1fr 120px; gap: 8px; margin-bottom: 10px;
-      }
-      input, select {
-        width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 8px;
-        background: #fff; color: var(--ink); padding: 9px 10px;
-      }
-      .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-      .section { display: none; }
-      .section.active { display: block; }
-      .nav {
-        position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-        padding: 7px 8px calc(env(safe-area-inset-bottom) + 7px);
-        background: rgba(255,255,255,0.96); border-top: 1px solid var(--line);
-        display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
-      }
-      .nav button {
-        min-height: 48px; border: 1px solid transparent; border-radius: 8px;
-        background: transparent; color: var(--muted); font-size: 11px; font-weight: 900;
-        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-      }
-      .nav .ico { font-size: 18px; line-height: 1; }
-      .nav button.active { background: var(--red-soft); color: var(--red); border-color: #fecaca; }
-      .grid { display: grid; gap: 10px; }
-      .panel, .kpi, .unit, .alert, .lane {
-        background: var(--paper); border: 1px solid var(--line); border-radius: 8px;
-        box-shadow: 0 1px 2px rgba(15,23,42,0.04);
-      }
-      .hero {
-        background: #fff; border: 1px solid var(--line); border-radius: 8px;
-        padding: 13px; margin-bottom: 10px;
-      }
-      .hero-main { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
-      .hero-label { font-size: 11px; color: var(--muted); font-weight: 900; text-transform: uppercase; letter-spacing: 0.6px; }
-      .hero-value { margin-top: 5px; font-size: 42px; line-height: 1; font-weight: 950; }
-      .hero-value.good { color: var(--green); }
-      .hero-value.warn { color: var(--amber); }
-      .hero-value.bad { color: var(--red); }
-      .hero-note { margin-top: 6px; color: var(--muted); font-size: 12px; }
-      .gauge {
-        width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center;
-        background: conic-gradient(var(--green) 0deg, var(--green) var(--angle), #e5e7eb var(--angle), #e5e7eb 360deg);
-      }
-      .gauge span {
-        width: 72px; height: 72px; border-radius: 50%; background: #fff;
-        display: grid; place-items: center; font-size: 18px; font-weight: 950;
-      }
-      .kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
-      .kpi { padding: 10px; min-height: 82px; }
-      .kpi .label { font-size: 10px; color: var(--muted); font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
-      .kpi .value { margin-top: 6px; font-size: 29px; line-height: 1; font-weight: 950; }
-      .kpi .hint { margin-top: 5px; font-size: 11px; color: var(--muted); }
-      .green { color: var(--green); } .amber { color: var(--amber); } .blue { color: var(--blue); } .red { color: var(--red); } .violet { color: var(--violet); }
-      .panel { padding: 11px; }
-      .panel-title { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 9px; }
-      .panel-title h2 { margin: 0; font-size: 15px; }
-      .panel-title span { color: var(--muted); font-size: 11px; font-weight: 800; }
-      canvas { display: block; width: 100%; height: 210px; }
-      .alerts { display: grid; gap: 7px; }
-      .alert { padding: 10px; display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center; }
-      .alert .mark { width: 10px; height: 36px; border-radius: 8px; background: var(--line); }
-      .alert.bad .mark { background: var(--red); } .alert.warn .mark { background: var(--amber); } .alert.good .mark { background: var(--green); }
-      .alert-title { font-size: 13px; font-weight: 950; }
-      .alert-detail { margin-top: 2px; font-size: 11px; color: var(--muted); line-height: 1.3; }
-      .alert-num { font-size: 24px; font-weight: 950; }
-      .lane-grid { display: grid; gap: 8px; }
-      .lane { padding: 10px; }
-      .lane-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-      .lane-name { font-weight: 950; font-size: 14px; }
-      .lane-total { color: var(--muted); font-size: 12px; font-weight: 800; }
-      .bar { height: 12px; overflow: hidden; border-radius: 999px; display: flex; background: #e5e7eb; }
-      .bar span { display: block; min-width: 0; }
-      .bar .done { background: var(--green); } .bar .partial { background: var(--amber); } .bar .none { background: var(--red); }
-      .lane-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
-      .lane-metrics div { background: #f8fafc; border-radius: 7px; padding: 6px; font-size: 11px; color: var(--muted); }
-      .lane-metrics b { display: block; color: var(--ink); font-size: 16px; }
-      .list { display: grid; gap: 7px; }
-      .unit { padding: 9px; border-left: 4px solid var(--line); }
-      .unit.done { border-left-color: var(--green); background: #f8fff9; }
-      .unit.only-v { border-left-color: var(--amber); background: #fffaf0; }
-      .unit.only-p { border-left-color: var(--blue); background: #f1f9ff; }
-      .unit.none { border-left-color: var(--red); }
-      .unit-head { display: flex; align-items: center; gap: 7px; min-width: 0; }
-      .pline {
-        background: var(--red); color: #fff; border-radius: 5px; padding: 3px 7px;
-        font-size: 11px; font-weight: 950; flex-shrink: 0;
-      }
-      .ident {
-        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; font-size: 16px;
-        font-weight: 950; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      }
-      .van { margin-left: auto; color: var(--muted); font-size: 10px; font-weight: 900; white-space: nowrap; }
-      .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
-      .badge {
-        border: 1px solid var(--line); background: #f8fafc; color: var(--muted);
-        border-radius: 999px; padding: 4px 7px; font-size: 10px; font-weight: 950;
-      }
-      .badge.done { background: var(--green-soft); color: var(--green); border-color: #bbf7d0; }
-      .badge.only-v { background: var(--amber-soft); color: var(--amber); border-color: #fde68a; }
-      .badge.only-p { background: var(--blue-soft); color: var(--blue); border-color: #bae6fd; }
-      .badge.none { background: var(--red-soft); color: var(--red); border-color: #fecaca; }
-      .badge.priority { background: var(--violet-soft); color: var(--violet); border-color: #ddd6fe; }
-      .meta { margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.35; }
-      .segment { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
-      .segment button {
-        min-height: 38px; border: 1px solid var(--line); border-radius: 8px;
-        background: #fff; color: var(--ink); font-size: 12px; font-weight: 950;
-      }
-      .segment button.active { border-color: var(--red); color: var(--red); box-shadow: inset 0 0 0 1px rgba(192,0,0,0.24); }
-      .correct-box { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 10px; }
-      .correct-box button, .toggle {
-        min-height: 40px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-weight: 950;
-      }
-      .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
-      .toggle.on { background: var(--green); border-color: var(--green); color: #fff; }
-      .sollecita-btn {
-        margin-top: 8px; width: 100%; padding: 9px; border-radius: 8px;
-        border: 1px solid #F59E0B; background: #FFF7ED; color: #92400E;
-        font-weight: 800; font-size: 12px; cursor: pointer;
-      }
-      .sollecita-btn:active { transform: scale(0.98); }
-      .empty {
-        border: 2px dashed var(--line); background: #fff; color: var(--muted); border-radius: 8px;
-        padding: 26px 16px; text-align: center; font-weight: 850;
-      }
-      .toast {
-        position: fixed; left: 50%; bottom: 78px; z-index: 60;
-        transform: translateX(-50%) translateY(90px); background: var(--ink); color: #fff;
-        padding: 11px 18px; border-radius: 999px; font-size: 13px; font-weight: 850;
-        max-width: 92vw; text-align: center; transition: transform 180ms ease;
-      }
-      .toast.show { transform: translateX(-50%) translateY(0); }
-      .toast.error { background: var(--red); }
-      @media (min-width: 760px) {
-        .filters { grid-template-columns: 1fr 150px 150px; }
-        .date-row { grid-template-columns: 180px 180px 1fr; }
-        .kpis { grid-template-columns: repeat(6, 1fr); }
-        .grid.two { grid-template-columns: 1.1fr 0.9fr; }
-        .grid.three { grid-template-columns: repeat(3, 1fr); }
-        .wide { grid-column: 1 / -1; }
-      }
+      *,*::before,*::after{box-sizing:border-box}
+      html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+        background:#EEF2F7;color:var(--ink);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+        font-size:clamp(12px,3.4vw,14px)}
+      .app{max-width:560px;margin:0 auto;background:#F8FAFC;min-height:100vh;min-height:100dvh}
+      header{position:sticky;top:0;z-index:40;background:var(--ink);color:#fff;
+        padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;display:flex;align-items:center;gap:10px}
+      header h1{margin:0;font-size:clamp(14px,4vw,16px);font-weight:900;letter-spacing:-.2px;flex:1;min-width:0}
+      header .sub{font-size:10px;opacity:.7;font-weight:650;margin-top:1px}
+      .icon-btn{width:34px;height:34px;border:0;border-radius:9px;background:rgba(255,255,255,.12);color:#fff;
+        font-size:17px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+      .icon-btn:active{transform:scale(.95)}
+      .icon-btn.spin i{display:inline-block;animation:spin .8s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+
+      .controls{position:sticky;top:calc(env(safe-area-inset-top) + 50px);z-index:35;background:#fff;
+        display:grid;grid-template-columns:1fr auto;gap:7px;padding:8px 12px;border-bottom:1px solid var(--line)}
+      .controls input[type=search],.controls select{height:38px;border:1px solid var(--line);border-radius:11px;
+        font-size:13px;background:#fff;color:var(--ink);padding:0 12px;-webkit-appearance:none;appearance:none;width:100%}
+      .controls select{font-weight:800;min-width:120px;padding-right:28px;
+        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230F172A' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat:no-repeat;background-position:right 9px center}
+      .controls input:focus,.controls select:focus{outline:2px solid rgba(192,0,0,.3);border-color:var(--red)}
+
+      section{padding:10px 12px 0}
+      .sec-title{font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:var(--grey);margin:2px 2px 7px}
+
+      /* KPI totali */
+      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+      .kpi{background:#fff;border:1px solid #E7EDF4;border-radius:12px;padding:9px 8px;box-shadow:0 1px 3px rgba(15,23,42,.05);min-width:0}
+      .kpi .n{font-size:clamp(18px,5.4vw,22px);font-weight:950;line-height:1}
+      .kpi .l{font-size:8.5px;font-weight:850;letter-spacing:.3px;color:var(--grey);margin-top:3px;text-transform:uppercase;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .kpi.vern .n{color:var(--red)} .kpi.pre .n{color:var(--blue)}
+      .kpi.oggi .n{color:var(--green)} .kpi.prio .n{color:var(--amber)}
+
+      /* Per linea */
+      .lines-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+      table.lines{width:100%;border-collapse:collapse;font-size:12px}
+      table.lines th,table.lines td{padding:7px 6px;text-align:center;white-space:nowrap}
+      table.lines th{font-size:9px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--grey);
+        background:#F8FAFC;border-bottom:1px solid var(--line);position:sticky;top:0}
+      table.lines th:first-child,table.lines td:first-child{text-align:left;padding-left:11px}
+      table.lines td{border-bottom:1px solid #F1F5F9;font-weight:800}
+      table.lines tr:last-child td{border-bottom:0}
+      table.lines .pl{display:inline-block;background:var(--red);color:#fff;font-weight:900;font-size:11px;
+        padding:3px 8px;border-radius:6px;letter-spacing:.3px}
+      table.lines .tot td{background:#F8FAFC;font-weight:950}
+      table.lines .tot .pl{background:var(--ink)}
+      td .cv{color:var(--red)} td .cp{color:var(--blue)} td .co{color:var(--green)} td .cx{color:var(--amber)}
+      td.z{color:#CBD5E1;font-weight:700}
+
+      /* Filtri chip */
+      .chips{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 0;-webkit-overflow-scrolling:touch}
+      .chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;
+        font-size:12px;font-weight:850;color:var(--ink2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+      .chip b{background:#F1F5F9;color:var(--ink);border-radius:8px;padding:1px 6px;font-size:11px}
+      .chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
+      .chip.active b{background:rgba(255,255,255,.2);color:#fff}
+
+      /* Lista unita' (stile operatore, compatta) */
+      main{padding:8px 12px calc(20px + env(safe-area-inset-bottom))}
+      .unit{background:#fff;border:1px solid #E8EEF5;border-left:4px solid var(--line);border-radius:12px;
+        padding:9px 10px 9px 12px;margin-bottom:7px;box-shadow:0 1px 4px rgba(15,23,42,.05)}
+      .unit.vern{border-left-color:var(--red)} .unit.pre{border-left-color:var(--blue)}
+      .unit.done{border-left-color:var(--green);background:#F6FFF9} .unit.prio{border-left-color:var(--amber)}
+      .u-top{display:flex;align-items:center;gap:7px;min-width:0}
+      .u-pl{background:var(--red);color:#fff;font-weight:900;font-size:11px;padding:4px 8px;border-radius:7px;letter-spacing:.3px;flex-shrink:0}
+      .unit.done .u-pl{background:var(--green)}
+      .u-id{font-family:ui-monospace,"Cascadia Mono",Menlo,monospace;font-size:clamp(14px,4.2vw,17px);font-weight:950;
+        color:var(--ink);flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.05}
+      .u-star{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#CBD5E1;
+        cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+      .u-star.on{background:var(--amber-bg);border-color:#FCD34D;color:#D97706}
+      .u-star:active{transform:scale(.94)}
+      .u-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+      .tag{font-size:9px;font-weight:850;letter-spacing:.3px;text-transform:uppercase;padding:3px 7px;border-radius:6px;
+        border:1px solid var(--line);background:var(--soft);color:var(--grey);white-space:nowrap}
+      .tag.st{background:var(--red);color:#fff;border-color:var(--red)} /* status principale */
+      .tag.st.pre{background:var(--blue);border-color:var(--blue)}
+      .tag.st.done{background:var(--green);border-color:var(--green)}
+      .tag.stato-deliberato{background:var(--amber-bg);color:var(--amber);border-color:#FDE68A}
+      .tag.stato-fine-linea{background:var(--blue-bg);color:var(--blue);border-color:#BAE6FD}
+      .tag.when{background:#fff;color:var(--grey)}
+      .tag.top{background:#FFF1F2;color:var(--red);border-color:#FFE1E5}
+      .u-act{display:flex;gap:6px;margin-top:8px}
+      .u-act button{flex:1;min-height:34px;border-radius:9px;font-weight:850;font-size:11px;cursor:pointer;
+        display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.4px solid var(--line);background:#fff;color:var(--ink2)}
+      .u-act .t.on{background:linear-gradient(135deg,#22C55E,#16A34A);border-color:var(--green);color:#fff}
+      .u-act .avvisa{background:var(--amber-bg);border-color:#FCD34D;color:#B45309}
+      .u-act button:active{transform:scale(.97)}
+      .u-act .t i,.u-act .avvisa i{font-size:12px}
+      .empty{margin:24px 12px;padding:26px;text-align:center;border:2px dashed var(--line);border-radius:14px;color:var(--grey);background:#fff}
+
+      /* Modale assegna */
+      .backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);display:none;
+        align-items:flex-end;justify-content:center;z-index:100;padding:0}
+      .backdrop.show{display:flex}
+      .sheet{width:100%;max-width:560px;background:#fff;border-radius:18px 18px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));
+        box-shadow:0 -12px 40px rgba(15,23,42,.3);animation:up .22s ease}
+      @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+      .sheet h3{margin:0 0 2px;font-size:16px;font-weight:900}
+      .sheet .who{font-size:12px;color:var(--grey);font-weight:700;margin-bottom:12px}
+      .sheet .who b{color:var(--ink);font-family:ui-monospace,Menlo,monospace}
+      .row-lbl{font-size:10px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:var(--grey);margin:10px 2px 6px}
+      .team-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .team-opt{border:1.5px solid var(--line);border-radius:12px;padding:11px 8px;background:#fff;cursor:pointer;text-align:center;
+        display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--ink2)}
+      .team-opt i{font-size:19px}
+      .team-opt span{font-size:11px;font-weight:850}
+      .team-opt.sel{border-color:var(--red);background:#FFF1F2;color:var(--red)}
+      .sheet select{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;font-size:15px;padding:0 12px;background:#fff;-webkit-appearance:none}
+      .chk{display:flex;align-items:center;gap:9px;margin:14px 2px 0;font-size:13px;font-weight:700}
+      .chk input{width:20px;height:20px;accent-color:var(--red)}
+      .sheet-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:16px}
+      .btn{min-height:50px;border-radius:12px;border:0;font-weight:900;font-size:15px;cursor:pointer}
+      .btn.cancel{background:var(--soft);color:var(--ink2);border:1px solid var(--line)}
+      .btn.send{background:var(--red);color:#fff;box-shadow:0 2px 10px rgba(192,0,0,.3)}
+      .btn:active{transform:scale(.98)}
+
+      .toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(90px);
+        background:var(--ink);color:#fff;padding:11px 18px;border-radius:22px;font-size:13px;font-weight:700;z-index:120;
+        opacity:0;visibility:hidden;transition:transform .25s,opacity .2s,visibility .2s;max-width:92%;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+      .toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible}
+      .toast.err{background:var(--red)}
+      @media(max-width:360px){.kpis{grid-template-columns:repeat(2,1fr)}.team-opts{grid-template-columns:1fr}}
     </style>
   </head>
   <body>
-    <header>
-      <div class="topline">
-        <div class="title">
-          <h1>Manager Verniciatura</h1>
-          <div class="subtitle" id="subtitle">Vista decisionale LE01</div>
+    <div class="app">
+      <header>
+        <div style="min-width:0">
+          <h1>Admin Verniciatura</h1>
+          <div class="sub" id="updated">—</div>
         </div>
         <button class="icon-btn" id="refreshBtn" type="button" aria-label="Aggiorna">&#8635;</button>
-      </div>
-      <div class="updated" id="updatedAt">Aggiornamento in corso...</div>
-    </header>
+      </header>
 
-    <main class="wrap">
-      <div class="filters">
-        <input id="search" type="search" placeholder="Cerca VAN, telaio, stato..." />
-        <select id="pline">
-          <option value="">Tutte PLINE</option>
-          <option value="TLB">TLB</option><option value="CWL">CWL</option><option value="WLM">WLM</option>
-          <option value="WLL">WLL</option><option value="GRD">GRD</option><option value="TLH">TLH</option>
-          <option value="EPICO">EPICO</option>
-        </select>
-        <select id="dateMode">
-          <option value="today">Oggi</option>
-          <option value="date">Giorno scelto</option>
-          <option value="all">Tutto stock</option>
-        </select>
-      </div>
-      <div class="date-row">
-        <input id="workDate" type="date" />
-        <select id="trendDays">
-          <option value="7">Ultimi 7 giorni</option>
-          <option value="14">Ultimi 14 giorni</option>
-          <option value="30">Ultimi 30 giorni</option>
-        </select>
-        <div></div>
+      <div class="controls">
+        <input type="search" id="search" placeholder="Cerca telaio, VAN, stato..." />
+        <select id="plineFilter" aria-label="Linea"><option value="">Tutte le linee</option></select>
       </div>
 
-      <section class="section active" id="view-home">
-        <div class="hero">
-          <div class="hero-main">
-            <div>
-              <div class="hero-label">Avanzamento stock selezionato</div>
-              <div class="hero-value" id="heroPct">0%</div>
-              <div class="hero-note" id="heroNote">0 complete su 0 macchine.</div>
-            </div>
-            <div class="gauge" id="gauge" style="--angle: 0deg"><span id="gaugeText">0%</span></div>
-          </div>
-        </div>
+      <section>
+        <div class="sec-title">Situazione</div>
         <div class="kpis">
-          <div class="kpi"><div class="label">Lista</div><div class="value" id="kTotal">0</div><div class="hint">macchine</div></div>
-          <div class="kpi"><div class="label">Oggi</div><div class="value blue" id="kToday">0</div><div class="hint" id="kTodayHint">0 vern. / 0 pre</div></div>
-          <div class="kpi"><div class="label">Complete</div><div class="value green" id="kDone">0</div><div class="hint">vern. + pre</div></div>
-          <div class="kpi"><div class="label">Manca pre</div><div class="value amber" id="kOnlyV">0</div><div class="hint">solo verniciate</div></div>
-          <div class="kpi"><div class="label">Anomale</div><div class="value blue" id="kOnlyP">0</div><div class="hint">pre senza vern.</div></div>
-          <div class="kpi"><div class="label">Da fare</div><div class="value red" id="kNone">0</div><div class="hint">nessuna spunta</div></div>
-        </div>
-        <div class="grid two">
-          <div class="panel">
-            <div class="panel-title"><h2>Priorita operative</h2><span id="attentionCount">0 punti</span></div>
-            <div class="alerts" id="attentionList"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-title"><h2>Rendimento ultimi giorni</h2><span id="trendLabel">7 giorni</span></div>
-            <canvas id="trendCanvas" width="680" height="260"></canvas>
-          </div>
-          <div class="panel wide">
-            <div class="panel-title"><h2>Linee da guardare ora</h2><span>ordinate per criticita</span></div>
-            <div class="lane-grid" id="laneGrid"></div>
-          </div>
+          <div class="kpi vern"><div class="n" id="kVern">0</div><div class="l">Da vern.</div></div>
+          <div class="kpi pre"><div class="n" id="kPre">0</div><div class="l">Da pre-ship</div></div>
+          <div class="kpi oggi"><div class="n" id="kOggi">0</div><div class="l">Fatte oggi</div></div>
+          <div class="kpi prio"><div class="n" id="kPrio">0</div><div class="l">Priorità</div></div>
         </div>
       </section>
 
-      <section class="section" id="view-flow">
-        <div class="grid two">
-          <div class="panel">
-            <div class="panel-title"><h2>Composizione stock</h2><span id="stockLabel">tutte PLINE</span></div>
-            <canvas id="stockCanvas" width="520" height="260"></canvas>
-          </div>
-          <div class="panel">
-            <div class="panel-title"><h2>PLINE: complete, parziali, da fare</h2><span>stock attuale</span></div>
-            <canvas id="plineCanvas" width="680" height="260"></canvas>
-          </div>
+      <section>
+        <div class="sec-title">Per linea</div>
+        <div class="lines-wrap">
+          <table class="lines">
+            <thead><tr><th>Linea</th><th>Da vern.</th><th>Pre-ship</th><th>Oggi</th><th>Prio</th></tr></thead>
+            <tbody id="linesBody"></tbody>
+          </table>
         </div>
       </section>
 
-      <section class="section" id="view-list">
-        <div class="segment">
-          <button class="seg active" data-status="all" type="button">Tutte</button>
-          <button class="seg" data-status="done" type="button">Complete</button>
-          <button class="seg" data-status="only-v" type="button">Solo vern.</button>
-          <button class="seg" data-status="none" type="button">Da fare</button>
-        </div>
-        <div class="panel">
-          <div class="panel-title"><h2>Macchine</h2><span id="listCount">0 righe</span></div>
-          <div class="list" id="unitList"></div>
+      <section>
+        <div class="sec-title">Unità</div>
+        <div class="chips" id="chips">
+          <button class="chip active" data-f="all" type="button"><span>Tutte</span><b id="cAll">0</b></button>
+          <button class="chip" data-f="vern" type="button"><span>Da verniciare</span><b id="cVern">0</b></button>
+          <button class="chip" data-f="pre" type="button"><span>Pre-shipment</span><b id="cPre">0</b></button>
+          <button class="chip" data-f="prio" type="button"><span>Priorità</span><b id="cPrio">0</b></button>
+          <button class="chip" data-f="oggi" type="button"><span>Fatte oggi</span><b id="cOggi">0</b></button>
         </div>
       </section>
+      <main id="list"></main>
+    </div>
 
-      <section class="section" id="view-correct">
-        <div class="panel">
-          <div class="panel-title"><h2>Correggi consuntivo</h2><span>modifica separata dalla dashboard</span></div>
-          <div class="correct-box">
-            <input id="correctSearch" type="search" placeholder="Cerca telaio o VAN..." />
-            <button id="clearCorrect" type="button">Pulisci</button>
-          </div>
-          <div class="list" id="correctList"></div>
+    <div class="backdrop" id="assignSheet">
+      <div class="sheet" role="dialog" aria-modal="true">
+        <h3>Assegna priorità</h3>
+        <div class="who">Unità <b id="asgIdent">—</b> · <span id="asgWork">—</span></div>
+        <div class="row-lbl">Invia a</div>
+        <div class="team-opts" id="teamOpts">
+          <button class="team-opt" data-t="team" type="button"><span style="font-size:20px">&#128101;</span><span id="teamLbl">Tutta la squadra</span></button>
+          <button class="team-opt" data-t="op" type="button"><span style="font-size:20px">&#128100;</span><span>Un operatore</span></button>
         </div>
-      </section>
-    </main>
+        <div id="opWrap" style="display:none">
+          <div class="row-lbl">Operatore</div>
+          <select id="asgOp"><option value="">— scegli —</option></select>
+        </div>
+        <label class="chk"><input type="checkbox" id="asgPrio" checked /> Segna anche come priorità (TOP)</label>
+        <div class="sheet-actions">
+          <button class="btn cancel" id="asgCancel" type="button">Annulla</button>
+          <button class="btn send" id="asgSend" type="button">Invia sollecito</button>
+        </div>
+      </div>
+    </div>
 
-    <nav class="nav" aria-label="Menu manager">
-      <button class="nav-btn active" data-view="home" type="button"><span class="ico">&#8962;</span>Home</button>
-      <button class="nav-btn" data-view="flow" type="button"><span class="ico">&#9638;</span>Flusso</button>
-      <button class="nav-btn" data-view="list" type="button"><span class="ico">&#9776;</span>Lista</button>
-      <button class="nav-btn" data-view="correct" type="button"><span class="ico">&#9998;</span>Correggi</button>
-    </nav>
     <div class="toast" id="toast"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       const SUPABASE_URL = "https://hvzhoggvicevcoenicnf.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2emhvZ2d2aWNldmNvZW5pY25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Nzg5MjIsImV4cCI6MjA5NTQ1NDkyMn0.--C94gsSg9RG7YN4ftTY0z-gdXNON7gqJWrqkY-5Jt4";
       const TABLE = "painting_preshipment_jobs";
       const PUSH_SECRET = "__PUSH_SECRET__";
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const $ = (id) => document.getElementById(id);
       const els = {
-        search: document.getElementById("search"), pline: document.getElementById("pline"),
-        dateMode: document.getElementById("dateMode"), workDate: document.getElementById("workDate"),
-        trendDays: document.getElementById("trendDays"), refresh: document.getElementById("refreshBtn"),
-        toast: document.getElementById("toast"), unitList: document.getElementById("unitList"),
-        correctSearch: document.getElementById("correctSearch"), correctList: document.getElementById("correctList"),
-        clearCorrect: document.getElementById("clearCorrect")
+        search: $("search"), pline: $("plineFilter"), list: $("list"), updated: $("updated"),
+        refresh: $("refreshBtn"), linesBody: $("linesBody"), toast: $("toast"),
+        kVern: $("kVern"), kPre: $("kPre"), kOggi: $("kOggi"), kPrio: $("kPrio"),
+        cAll: $("cAll"), cVern: $("cVern"), cPre: $("cPre"), cPrio: $("cPrio"), cOggi: $("cOggi"),
       };
       let items = [];
-      let activeStatus = "all";
+      let filter = "all";
 
-      function fmtDate(d) {
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      // ---- helpers -----------------------------------------------------------
+      function norm(v){return String(v||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}
+      function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+      function digits(v){return String(v||"").replace(/\D+/g,"")}
+      function pl(it){return String(it.pline||"-").toUpperCase()}
+      function ident(it){const t=String(it.telaio||"").trim();return (t&&t!=="0")?t:(String(it.van||"").trim()||"-")}
+      function isPriority(it){const t=norm(it.note);if(!t.trim())return false;return /\b(top|urgent|urgente|priorit|prio\s*1|p1)\b/.test(t)||t.trim()==="1"}
+      function getState(it){return String(it.stato||"").trim()}
+      function stateKey(it){const r=norm(getState(it)).replace(/\s+/g,"-");if(r.includes("deliberato"))return "deliberato";if(r.includes("fine-linea"))return "fine-linea";return ""}
+      function isComplete(it){return !!(it.verniciato&&it.preshipment)}
+      function needsPaint(it){return !it.verniciato}
+      function needsPre(it){return !!it.verniciato&&!it.preshipment}
+      function pendingRole(it){return needsPaint(it)?"paint":needsPre(it)?"pre":null}
+      function statusKind(it){if(isComplete(it))return "done";if(needsPaint(it))return "vern";if(needsPre(it))return "pre";return "done"}
+      function statusLabel(it){const k=statusKind(it);return k==="vern"?"Da verniciare":k==="pre"?"Da fare pre-shipment":"Processata"}
+      function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+      function sameDay(iso,day){if(!iso)return false;try{const d=new Date(iso);return (d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))===day}catch(e){return false}}
+      function doneToday(it){const t=todayStr();return sameDay(it.verniciato_at,t)||sameDay(it.preshipment_at,t)}
+      function opsToday(it){const t=todayStr();return (sameDay(it.verniciato_at,t)?1:0)+(sameDay(it.preshipment_at,t)?1:0)}
+      function ftime(iso){if(!iso)return "";try{const d=new Date(iso);const today=d.toDateString()===new Date().toDateString();const hm=d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});return today?("oggi "+hm):(d.toLocaleDateString("it-IT",{day:"2-digit",month:"2-digit"})+" "+hm)}catch(e){return ""}}
+
+      // ---- render ------------------------------------------------------------
+      function baseSet(){
+        const q=norm(els.search.value).trim(); const qd=digits(q); const plsel=els.pline.value;
+        return items.filter(it=>{
+          if(plsel && pl(it)!==plsel) return false;
+          if(!q) return true;
+          const hay=norm(pl(it)+" "+it.van+" "+it.telaio+" "+it.note+" "+getState(it)+" "+statusLabel(it));
+          const nm=qd&&(digits(it.van).includes(qd)||digits(it.telaio).includes(qd));
+          return hay.includes(q)||nm;
+        });
       }
-      function sameDate(iso, date) {
-        if (!iso || !date) return false;
-        return fmtDate(new Date(iso)) === date;
-      }
-      function norm(v) {
-        return String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      }
-      function digits(v) {
-        return String(v || "").replace(/\D+/g, "").replace(/^0+/, "");
-      }
-      function escapeHtml(v) {
-        return String(v || "").replace(/[&<>"']/g, ch => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"
-        }[ch]));
-      }
-      function timeLabel(iso) {
-        if (!iso) return "";
-        const d = new Date(iso);
-        return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }) + " " +
-          d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-      }
-      function ident(it) {
-        const telaio = String(it.telaio || "").trim();
-        return telaio && telaio !== "0" ? telaio : (it.van || "-");
-      }
-      function isPriority(it) {
-        const raw = it.priority ?? it.priorita ?? it.is_priority ?? it.prioritaria ?? "";
-        const text = norm(`${raw} ${it.note || ""}`).trim();
-        if (!text || ["0", "false", "no", "standard", "normale"].includes(text)) return false;
-        return text === "1" || /\b(top|urgent|urgente|priority|priorita|prioritaria|p1|prio\s*1)\b/.test(text);
-      }
-      function statusOf(it) {
-        if (it.verniciato && it.preshipment) return "done";
-        if (it.verniciato) return "only-v";
-        if (it.preshipment) return "only-p";
-        return "none";
-      }
-      function statusLabel(it) {
-        const s = statusOf(it);
-        return s === "done" ? "Completa" : s === "only-v" ? "Manca pre-shipment" : s === "only-p" ? "Pre senza vern." : "Da fare";
-      }
-      function metrics(rows) {
-        return {
-          total: rows.length,
-          done: rows.filter(x => x.verniciato && x.preshipment).length,
-          onlyV: rows.filter(x => x.verniciato && !x.preshipment).length,
-          onlyP: rows.filter(x => !x.verniciato && x.preshipment).length,
-          none: rows.filter(x => !x.verniciato && !x.preshipment).length,
-          priorityOpen: rows.filter(x => isPriority(x) && !(x.verniciato && x.preshipment)).length,
-        };
-      }
-      function scopedRows() {
-        const q = norm(els.search.value).trim();
-        const qd = digits(q);
-        const date = els.dateMode.value === "today" ? fmtDate(new Date()) : els.workDate.value;
-        return items.filter(it => {
-          if (els.pline.value && String(it.pline || "").toUpperCase() !== els.pline.value) return false;
-          if (els.dateMode.value !== "all" && !sameDate(it.verniciato_at, date) && !sameDate(it.preshipment_at, date)) return false;
-          if (q) {
-            const hay = norm(`${it.pline || ""} ${it.van || ""} ${it.telaio || ""} ${it.stato || ""} ${it.note || ""}`);
-            const numeric = qd && (digits(it.van).includes(qd) || digits(it.telaio).includes(qd));
-            if (!hay.includes(q) && !numeric) return false;
-          }
+      function render(){
+        const set=baseSet();
+        // KPI totali (su tutto l'impianto, non filtrati)
+        const all=items;
+        els.kVern.textContent=all.filter(needsPaint).length;
+        els.kPre.textContent=all.filter(needsPre).length;
+        els.kOggi.textContent=all.reduce((a,it)=>a+opsToday(it),0);
+        els.kPrio.textContent=all.filter(it=>isPriority(it)&&!isComplete(it)).length;
+        // per linea
+        const lines={}; all.forEach(it=>{const k=pl(it);(lines[k]=lines[k]||{v:0,p:0,o:0,x:0});
+          if(needsPaint(it))lines[k].v++; if(needsPre(it))lines[k].p++; lines[k].o+=opsToday(it);
+          if(isPriority(it)&&!isComplete(it))lines[k].x++;});
+        const keys=Object.keys(lines).sort();
+        const tot={v:0,p:0,o:0,x:0}; keys.forEach(k=>{tot.v+=lines[k].v;tot.p+=lines[k].p;tot.o+=lines[k].o;tot.x+=lines[k].x});
+        els.linesBody.innerHTML=keys.map(k=>{
+          const r=lines[k];
+          return "<tr><td><span class='pl'>"+esc(k)+"</span></td>"+
+            "<td>"+(r.v?"<span class='cv'>"+r.v+"</span>":"<span class='z'>0</span>")+"</td>"+
+            "<td>"+(r.p?"<span class='cp'>"+r.p+"</span>":"<span class='z'>0</span>")+"</td>"+
+            "<td>"+(r.o?"<span class='co'>"+r.o+"</span>":"<span class='z'>0</span>")+"</td>"+
+            "<td>"+(r.x?"<span class='cx'>"+r.x+"</span>":"<span class='z'>0</span>")+"</td></tr>";
+        }).join("") + "<tr class='tot'><td><span class='pl'>TOTALE</span></td><td>"+tot.v+"</td><td>"+tot.p+"</td><td>"+tot.o+"</td><td>"+tot.x+"</td></tr>";
+
+        // chips count (sul set filtrato per linea/ricerca)
+        els.cAll.textContent=set.length;
+        els.cVern.textContent=set.filter(needsPaint).length;
+        els.cPre.textContent=set.filter(needsPre).length;
+        els.cPrio.textContent=set.filter(it=>isPriority(it)&&!isComplete(it)).length;
+        els.cOggi.textContent=set.filter(doneToday).length;
+
+        // lista filtrata
+        let rows=set.filter(it=>{
+          if(filter==="vern")return needsPaint(it);
+          if(filter==="pre")return needsPre(it);
+          if(filter==="prio")return isPriority(it)&&!isComplete(it);
+          if(filter==="oggi")return doneToday(it);
           return true;
         });
-      }
-      function ordered(rows) {
-        const order = { none: 0, "only-v": 1, "only-p": 2, done: 3 };
-        return rows.slice().sort((a, b) =>
-          Number(isPriority(b)) - Number(isPriority(a)) ||
-          order[statusOf(a)] - order[statusOf(b)] ||
-          String(a.pline || "").localeCompare(String(b.pline || "")) ||
-          String(ident(a)).localeCompare(String(ident(b)))
-        );
-      }
-      function showToast(msg, err) {
-        els.toast.textContent = msg;
-        els.toast.classList.toggle("error", !!err);
-        els.toast.classList.add("show");
-        clearTimeout(showToast._t);
-        showToast._t = setTimeout(() => els.toast.classList.remove("show"), 2200);
-      }
-      function setView(view) {
-        document.querySelectorAll(".section").forEach(x => x.classList.remove("active"));
-        document.getElementById(`view-${view}`).classList.add("active");
-        document.querySelectorAll(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.view === view));
-        document.getElementById("subtitle").textContent = view === "home" ? "Vista decisionale LE01" :
-          view === "flow" ? "Analisi avanzamento e PLINE" : view === "list" ? "Lista macchine filtrata" : "Correzioni separate";
-        render();
-      }
-      function pct(done, total) {
-        return total ? Math.round(done / total * 100) : 0;
-      }
-      function renderHome() {
-        const rows = scopedRows();
-        const m = metrics(rows);
-        const today = fmtDate(new Date());
-        const todayV = items.filter(x => sameDate(x.verniciato_at, today)).length;
-        const todayP = items.filter(x => sameDate(x.preshipment_at, today)).length;
-        const progress = pct(m.done, m.total);
-        const hero = document.getElementById("heroPct");
-        hero.textContent = `${progress}%`;
-        hero.className = `hero-value ${progress >= 75 ? "good" : progress >= 45 ? "warn" : "bad"}`;
-        document.getElementById("heroNote").textContent = `${m.done} complete su ${m.total} macchine nel perimetro selezionato.`;
-        document.getElementById("gauge").style.setProperty("--angle", `${progress * 3.6}deg`);
-        document.getElementById("gaugeText").textContent = `${progress}%`;
-        document.getElementById("kTotal").textContent = m.total;
-        document.getElementById("kToday").textContent = Math.max(todayV, todayP);
-        document.getElementById("kTodayHint").textContent = `${todayV} vern. / ${todayP} pre`;
-        document.getElementById("kDone").textContent = m.done;
-        document.getElementById("kOnlyV").textContent = m.onlyV;
-        document.getElementById("kOnlyP").textContent = m.onlyP;
-        document.getElementById("kNone").textContent = m.none;
-        renderAttention(rows, m);
-        renderTrend();
-        renderLanes();
-      }
-      function renderAttention(rows, m) {
-        const list = [];
-        if (m.onlyP) list.push({ type: "bad", title: "Pre-shipment senza verniciatura", detail: "Controllare dati o sequenza operativa.", n: m.onlyP });
-        if (m.onlyV) list.push({ type: "warn", title: "Verniciate in attesa di pre-shipment", detail: "Sono pronte per chiusura finale.", n: m.onlyV });
-        if (m.priorityOpen) list.push({ type: "warn", title: "Prioritarie ancora aperte", detail: "Metterle davanti nel giro di controllo.", n: m.priorityOpen });
-        if (!m.onlyP && !m.onlyV && !m.priorityOpen) list.push({ type: "good", title: "Nessun blocco evidente", detail: "Il flusso selezionato risulta allineato.", n: m.done });
-        document.getElementById("attentionCount").textContent = `${list.length} punti`;
-        document.getElementById("attentionList").innerHTML = list.map(x => `
-          <div class="alert ${x.type}">
-            <span class="mark"></span>
-            <div><div class="alert-title">${x.title}</div><div class="alert-detail">${x.detail}</div></div>
-            <div class="alert-num">${x.n}</div>
-          </div>`).join("");
-      }
-      function drawBars(canvas, labels, series, colors) {
-        const ctx = canvas.getContext("2d");
-        const w = canvas.width, h = canvas.height, pad = 34;
-        ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
-        const max = Math.max(1, ...series.flatMap(s => s));
-        ctx.strokeStyle = "#d8dee8"; ctx.lineWidth = 1;
-        for (let i = 0; i <= 4; i++) {
-          const y = h - pad - (h - pad * 2) * i / 4;
-          ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
-          ctx.fillStyle = "#667085"; ctx.font = "11px sans-serif"; ctx.fillText(String(Math.round(max * i / 4)), 4, y + 4);
-        }
-        const groupW = (w - pad * 2) / Math.max(1, labels.length);
-        labels.forEach((label, i) => {
-          const barW = Math.max(6, (groupW - 14) / series.length);
-          series.forEach((s, j) => {
-            const val = s[i] || 0;
-            const bh = (h - pad * 2) * val / max;
-            ctx.fillStyle = colors[j]; ctx.fillRect(pad + i * groupW + 7 + j * barW, h - pad - bh, barW - 2, bh);
-          });
-          ctx.fillStyle = "#334155"; ctx.font = "10px sans-serif";
-          ctx.save(); ctx.translate(pad + i * groupW + 7, h - 9); ctx.rotate(-0.45); ctx.fillText(label, 0, 0); ctx.restore();
+        rows.sort((a,b)=>{
+          const pa=(isPriority(a)&&!isComplete(a))?0:1, pb=(isPriority(b)&&!isComplete(b))?0:1;
+          if(pa!==pb)return pa-pb;
+          const da=isComplete(a)?2:(a.verniciato?1:0), db=isComplete(b)?2:(b.verniciato?1:0);
+          if(da!==db)return da-db;
+          return (pl(a)+ident(a)).localeCompare(pl(b)+ident(b));
         });
-      }
-      function drawDonut(canvas, values, labels, colors) {
-        const ctx = canvas.getContext("2d");
-        const w = canvas.width, h = canvas.height, cx = w * 0.33, cy = h * 0.5, r = Math.min(w, h) * 0.3;
-        ctx.clearRect(0, 0, w, h);
-        const realTotal = values.reduce((a, b) => a + b, 0);
-        const total = Math.max(1, realTotal);
-        let a = -Math.PI / 2;
-        values.forEach((v, i) => {
-          const n = a + Math.PI * 2 * v / total;
-          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, a, n); ctx.closePath(); ctx.fillStyle = colors[i]; ctx.fill(); a = n;
-        });
-        ctx.beginPath(); ctx.arc(cx, cy, r * 0.58, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
-        ctx.fillStyle = "#111827"; ctx.font = "900 22px sans-serif"; ctx.textAlign = "center"; ctx.fillText(String(realTotal), cx, cy + 7);
-        ctx.textAlign = "left"; ctx.font = "800 12px sans-serif";
-        labels.forEach((label, i) => {
-          const y = 52 + i * 34;
-          ctx.fillStyle = colors[i]; ctx.fillRect(w * 0.62, y - 11, 12, 12);
-          ctx.fillStyle = "#111827"; ctx.fillText(`${label}: ${values[i]}`, w * 0.62 + 18, y);
-        });
-      }
-      function renderTrend() {
-        const days = Number(els.trendDays.value || 7);
-        const labels = [], vern = [], pre = [];
-        for (let i = days - 1; i >= 0; i--) {
-          const d = new Date(); d.setDate(d.getDate() - i);
-          const key = fmtDate(d);
-          labels.push(d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }));
-          vern.push(items.filter(x => sameDate(x.verniciato_at, key)).length);
-          pre.push(items.filter(x => sameDate(x.preshipment_at, key)).length);
-        }
-        document.getElementById("trendLabel").textContent = `${days} giorni`;
-        drawBars(document.getElementById("trendCanvas"), labels, [vern, pre], ["#b45309", "#0369a1"]);
-      }
-      function renderLanes() {
-        const rows = scopedRows();
-        const plines = [...new Set(rows.map(x => String(x.pline || "-").toUpperCase()))].sort();
-        const lanes = plines.map(p => {
-          const r = rows.filter(x => String(x.pline || "-").toUpperCase() === p);
-          return { p, r, m: metrics(r) };
-        }).sort((a, b) => (b.m.onlyP * 3 + b.m.onlyV * 2 + b.m.none + b.m.priorityOpen * 2) - (a.m.onlyP * 3 + a.m.onlyV * 2 + a.m.none + a.m.priorityOpen * 2));
-        document.getElementById("laneGrid").innerHTML = lanes.length ? lanes.map(x => {
-          const total = Math.max(1, x.m.total);
-          const done = x.m.done / total * 100;
-          const partial = (x.m.onlyV + x.m.onlyP) / total * 100;
-          const none = x.m.none / total * 100;
-          return `<div class="lane">
-            <div class="lane-head"><div class="lane-name">${escapeHtml(x.p)}</div><div class="lane-total">${x.m.total} macchine</div></div>
-            <div class="bar"><span class="done" style="width:${done}%"></span><span class="partial" style="width:${partial}%"></span><span class="none" style="width:${none}%"></span></div>
-            <div class="lane-metrics">
-              <div><b>${x.m.done}</b>complete</div><div><b>${x.m.onlyV + x.m.onlyP}</b>parziali</div><div><b>${x.m.none}</b>da fare</div>
-            </div>
-          </div>`;
-        }).join("") : `<div class="empty">Nessuna PLINE nel perimetro selezionato.</div>`;
-      }
-      function renderFlow() {
-        const rows = scopedRows();
-        const m = metrics(rows);
-        document.getElementById("stockLabel").textContent = els.pline.value || "tutte PLINE";
-        drawDonut(document.getElementById("stockCanvas"), [m.done, m.onlyV, m.onlyP, m.none], ["Complete", "Solo vern.", "Solo pre", "Da fare"], ["#15803d", "#b45309", "#0369a1", "#c00000"]);
-        const plines = [...new Set(items.map(x => String(x.pline || "-").toUpperCase()))].sort();
-        drawBars(document.getElementById("plineCanvas"), plines, [
-          plines.map(p => items.filter(x => String(x.pline || "-").toUpperCase() === p && statusOf(x) === "done").length),
-          plines.map(p => items.filter(x => String(x.pline || "-").toUpperCase() === p && ["only-v", "only-p"].includes(statusOf(x))).length),
-          plines.map(p => items.filter(x => String(x.pline || "-").toUpperCase() === p && statusOf(x) === "none").length)
-        ], ["#15803d", "#b45309", "#c00000"]);
-      }
-      function unitHtml(it, editable) {
-        const s = statusOf(it);
-        const state = String(it.stato || "").trim();
-        return `<div class="unit ${s}" data-id="${it.id}">
-          <div class="unit-head"><span class="pline">${escapeHtml(it.pline || "-")}</span><span class="ident">${escapeHtml(ident(it))}</span><span class="van">VAN ${escapeHtml(it.van || "-")}</span></div>
-          <div class="badges">
-            <span class="badge ${s}">${statusLabel(it)}</span>
-            ${isPriority(it) ? `<span class="badge priority">Prioritaria</span>` : ""}
-            ${state ? `<span class="badge">${escapeHtml(state)}</span>` : ""}
-          </div>
-          <div class="meta">
-            ${it.verniciato_at ? `Verniciata: ${timeLabel(it.verniciato_at)} ${escapeHtml(it.verniciato_by || "")}<br>` : ""}
-            ${it.preshipment_at ? `Pre-shipment: ${timeLabel(it.preshipment_at)} ${escapeHtml(it.preshipment_by || "")}<br>` : ""}
-            ${it.note ? escapeHtml(it.note) : ""}
-          </div>
-          ${editable ? `<div class="toggles"><button class="toggle ${it.verniciato ? "on" : ""}" data-action="verniciato" type="button">VERNICIATO</button><button class="toggle ${it.preshipment ? "on" : ""}" data-action="preshipment" type="button">PRE-SHIPMENT</button></div>` : ""}
-          ${statusOf(it) !== "done" ? `<button class="sollecita-btn" data-id="${it.id}" type="button">&#128276; Sollecita ${!it.verniciato ? "verniciatura" : "pre-shipment"}</button>` : ""}
-        </div>`;
-      }
-      function renderList() {
-        let rows = scopedRows();
-        if (activeStatus !== "all") rows = rows.filter(x => statusOf(x) === activeStatus);
-        rows = ordered(rows);
-        document.getElementById("listCount").textContent = `${rows.length} righe`;
-        els.unitList.innerHTML = rows.length ? rows.map(x => unitHtml(x, false)).join("") : `<div class="empty">Nessuna macchina con questi filtri.</div>`;
-      }
-      function renderCorrect() {
-        const q = norm(els.correctSearch.value).trim();
-        const qd = digits(q);
-        const rows = q ? ordered(items.filter(it => {
-          const hay = norm(`${it.van || ""} ${it.telaio || ""} ${it.pline || ""} ${it.stato || ""}`);
-          return hay.includes(q) || (qd && (digits(it.van).includes(qd) || digits(it.telaio).includes(qd)));
-        })).slice(0, 30) : [];
-        els.correctList.innerHTML = q
-          ? (rows.length ? rows.map(x => unitHtml(x, true)).join("") : `<div class="empty">Nessuna macchina trovata.</div>`)
-          : `<div class="empty">Cerca telaio o VAN per abilitare le correzioni.</div>`;
-      }
-      function render() {
-        renderHome();
-        renderFlow();
-        renderList();
-        renderCorrect();
-      }
-      async function load() {
-        els.refresh.textContent = "...";
-        try {
-          const { data, error } = await sb.from(TABLE).select("*");
-          if (error) throw error;
-          items = data || [];
-          render();
-          document.getElementById("updatedAt").textContent = "Aggiornato " + new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-        } catch (e) {
-          console.error(e);
-          showToast("Errore caricamento: " + (e.message || e), true);
-        } finally {
-          els.refresh.textContent = "\u21bb";
-        }
-      }
-      async function updateItem(id, action, nextValue) {
-        const item = items.find(x => Number(x.id) === Number(id));
-        if (!item) return;
-        if (!confirm(`Confermi correzione ${action.toUpperCase()} per ${ident(item)}?`)) return;
-        const now = new Date().toISOString();
-        const body = { [action]: nextValue, [`${action}_at`]: nextValue ? now : null, [`${action}_by`]: nextValue ? "manager" : null, updated_at: now };
-        try {
-          const { data, error } = await sb.from(TABLE).update(body).eq("id", id).select().single();
-          if (error) throw error;
-          const idx = items.findIndex(x => Number(x.id) === Number(id));
-          if (idx >= 0) items[idx] = data;
-          render();
-          showToast("Correzione salvata");
-        } catch (e) {
-          console.error(e);
-          showToast("Errore salvataggio: " + (e.message || e), true);
-        }
+        if(!rows.length){els.list.innerHTML='<div class="empty">Nessuna unità per questo filtro.</div>';return;}
+        els.list.innerHTML=rows.map(it=>{
+          const kind=statusKind(it), prio=isPriority(it), st=getState(it), sk=stateKey(it);
+          const stTag='<span class="tag st '+(kind==="pre"?"pre":kind==="done"?"done":"")+'">'+esc(statusLabel(it))+"</span>";
+          const stateTag=st?('<span class="tag '+(sk?"stato-"+sk:"")+'">'+esc(st)+"</span>"):"";
+          const vWhen=it.verniciato_at?('<span class="tag when"><i class="fa-solid fa-paintbrush"></i> '+esc(ftime(it.verniciato_at))+"</span>"):"";
+          const pWhen=it.preshipment_at?('<span class="tag when"><i class="fa-solid fa-truck"></i> '+esc(ftime(it.preshipment_at))+"</span>"):"";
+          const canAssign=!isComplete(it);
+          return '<div class="unit '+(prio&&!isComplete(it)?"prio":kind)+'" data-id="'+it.id+'">'+
+            '<div class="u-top"><span class="u-pl">'+esc(pl(it))+'</span><span class="u-id">'+esc(ident(it))+'</span>'+
+              '<button class="u-star '+(prio?"on":"")+'" data-act="star" type="button" aria-label="Priorità">&#9733;</button></div>'+
+            '<div class="u-meta">'+stTag+stateTag+(prio?'<span class="tag top">TOP</span>':"")+vWhen+pWhen+'</div>'+
+            '<div class="u-act">'+
+              '<button class="t '+(it.verniciato?"on":"")+'" data-act="verniciato" type="button"><i class="fa-solid fa-paintbrush"></i> Vern.</button>'+
+              '<button class="t '+(it.preshipment?"on":"")+'" data-act="preshipment" type="button"><i class="fa-solid fa-truck"></i> Pre.</button>'+
+              (canAssign?'<button class="avvisa" data-act="assign" type="button">&#128276; Avvisa</button>':"")+
+            '</div></div>';
+        }).join("");
       }
 
-      document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => setView(btn.dataset.view)));
-      document.querySelectorAll(".seg").forEach(btn => btn.addEventListener("click", () => {
-        document.querySelectorAll(".seg").forEach(x => x.classList.remove("active"));
-        btn.classList.add("active");
-        activeStatus = btn.dataset.status;
-        renderList();
-      }));
-      [els.search, els.pline, els.dateMode, els.workDate, els.trendDays].forEach(el => {
-        el.addEventListener("input", render);
-        el.addEventListener("change", render);
-      });
-      els.refresh.addEventListener("click", load);
-      els.correctSearch.addEventListener("input", renderCorrect);
-      els.clearCorrect.addEventListener("click", () => { els.correctSearch.value = ""; renderCorrect(); });
-      els.correctList.addEventListener("click", e => {
-        const btn = e.target.closest(".toggle");
-        if (!btn) return;
-        updateItem(btn.closest(".unit").dataset.id, btn.dataset.action, !btn.classList.contains("on"));
-      });
-      function scheduleRefresh() {
-        clearTimeout(scheduleRefresh._t);
-        scheduleRefresh._t = setTimeout(load, 350);
+      // ---- azioni ------------------------------------------------------------
+      async function updateItem(id, action, value){
+        const now=new Date().toISOString();
+        const body={[action]:value,[action+"_at"]:value?now:null,[action+"_by"]:value?"ufficio":null,updated_at:now};
+        try{
+          const {data,error}=await sb.from(TABLE).update(body).eq("id",id).select().single();
+          if(error)throw error;
+          const i=items.findIndex(x=>String(x.id)===String(id)); if(i>=0)items[i]=data;
+          render();
+        }catch(e){toast("Errore aggiornamento",true)}
       }
-      try {
-        sb.channel("manager-painting-preshipment")
-          .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, scheduleRefresh)
-          .subscribe();
-      } catch (e) { console.warn(e); }
-      let solleciti = null;
-      try { solleciti = sb.channel("solleciti"); solleciti.subscribe(); } catch (e) { console.warn("broadcast KO:", e); }
-      function sollecita(id) {
-        const it = items.find(x => String(x.id) === String(id));
-        if (!it) return;
-        const role = !it.verniciato ? "paint" : !it.preshipment ? "pre" : null;
-        if (!role) { showToast("Unita gia completa"); return; }
-        try {
-          if (solleciti) solleciti.send({ type: "broadcast", event: "sollecito", payload: {
-            unitId: it.id, ident: ident(it), pline: String(it.pline || "-"), role, by: "Ufficio", ts: Date.now()
-          }});
-          fetch("/api/push-send", { method: "POST", headers: { "Content-Type": "application/json", "x-push-secret": PUSH_SECRET }, body: JSON.stringify({ unitId: it.id, ident: ident(it), pline: String(it.pline || "-"), role }) }).catch(function () {});
-          showToast("Sollecito inviato: " + ident(it) + " (" + (role === "pre" ? "pre-shipment" : "verniciatura") + ")");
-        } catch (e) { showToast("Errore invio sollecito", true); }
+      async function togglePriority(id){
+        const it=items.find(x=>String(x.id)===String(id)); if(!it)return;
+        const on=!isPriority(it);
+        let note=String(it.note||"").replace(/\bTOP\b/gi,"").replace(/\s{2,}/g," ").trim();
+        if(on)note=("TOP"+(note?" "+note:"")).trim();
+        try{
+          const {data,error}=await sb.from(TABLE).update({note,updated_at:new Date().toISOString()}).eq("id",id).select().single();
+          if(error)throw error;
+          const i=items.findIndex(x=>String(x.id)===String(id)); if(i>=0)items[i]=data;
+          render(); toast(on?"Priorità assegnata":"Priorità rimossa");
+        }catch(e){toast("Errore priorità",true)}
       }
-      document.addEventListener("click", e => {
-        const b = e.target.closest(".sollecita-btn");
-        if (b) sollecita(b.dataset.id);
+
+      // ---- sollecito (broadcast + push) --------------------------------------
+      let solleciti=null;
+      try{solleciti=sb.channel("solleciti");solleciti.subscribe();}catch(e){}
+      function sendSollecito(it, role, op){
+        const payload={unitId:it.id,ident:ident(it),pline:pl(it),role,by:"Ufficio",ts:Date.now()};
+        if(op)payload.op=op;
+        try{if(solleciti)solleciti.send({type:"broadcast",event:"sollecito",payload});}catch(e){}
+        fetch("/api/push-send",{method:"POST",headers:{"Content-Type":"application/json","x-push-secret":PUSH_SECRET},
+          body:JSON.stringify({unitId:it.id,ident:ident(it),pline:pl(it),role,op:op||""})}).catch(function(){});
+      }
+
+      // ---- modale assegna ----------------------------------------------------
+      const sheet=$("assignSheet"); let asgId=null, asgTarget="team";
+      function openAssign(id){
+        const it=items.find(x=>String(x.id)===String(id)); if(!it)return;
+        const role=pendingRole(it); if(!role){toast("Unità già completa");return;}
+        asgId=id; asgTarget="team";
+        $("asgIdent").textContent=ident(it);
+        const work=role==="pre"?"Pre-shipment":"Verniciatura";
+        $("asgWork").textContent="reparto "+work;
+        $("teamLbl").textContent="Squadra "+work;
+        // popola operatori (dai dati)
+        const ops=[...new Set(items.flatMap(x=>[x.verniciato_by,x.preshipment_by]).filter(Boolean).map(s=>String(s).trim()))].sort((a,b)=>a.localeCompare(b));
+        $("asgOp").innerHTML='<option value="">— scegli —</option>'+ops.map(o=>'<option value="'+esc(o)+'">'+esc(o)+"</option>").join("");
+        selTarget("team");
+        $("asgPrio").checked=true;
+        sheet.classList.add("show");
+      }
+      function selTarget(t){
+        asgTarget=t;
+        document.querySelectorAll(".team-opt").forEach(b=>b.classList.toggle("sel",b.dataset.t===t));
+        $("opWrap").style.display=t==="op"?"block":"none";
+      }
+      document.getElementById("teamOpts").addEventListener("click",e=>{const b=e.target.closest(".team-opt");if(b)selTarget(b.dataset.t)});
+      $("asgCancel").addEventListener("click",()=>sheet.classList.remove("show"));
+      sheet.addEventListener("click",e=>{if(e.target===sheet)sheet.classList.remove("show")});
+      $("asgSend").addEventListener("click",async()=>{
+        const it=items.find(x=>String(x.id)===String(asgId)); if(!it)return;
+        const role=pendingRole(it); if(!role)return;
+        const op=asgTarget==="op"?($("asgOp").value||""):"";
+        if(asgTarget==="op"&&!op){toast("Scegli un operatore",true);return;}
+        if($("asgPrio").checked && !isPriority(it)) await togglePriority(asgId);
+        sendSollecito(it, role, op);
+        sheet.classList.remove("show");
+        toast("Sollecito inviato: "+ident(it)+(op?(" → "+op):(" → squadra")));
       });
-      els.workDate.value = fmtDate(new Date());
+
+      // ---- lista click delegation --------------------------------------------
+      els.list.addEventListener("click",e=>{
+        const b=e.target.closest("[data-act]"); if(!b)return;
+        const card=b.closest(".unit"); if(!card)return; const id=card.dataset.id;
+        const act=b.dataset.act;
+        if(act==="star")return togglePriority(id);
+        if(act==="assign")return openAssign(id);
+        const it=items.find(x=>String(x.id)===String(id)); if(!it)return;
+        if(act==="verniciato")return updateItem(id,"verniciato",!it.verniciato);
+        if(act==="preshipment")return updateItem(id,"preshipment",!it.preshipment);
+      });
+      document.getElementById("chips").addEventListener("click",e=>{
+        const c=e.target.closest(".chip"); if(!c)return;
+        filter=c.dataset.f;
+        document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active",x===c));
+        render();
+      });
+      els.search.addEventListener("input",render);
+      els.pline.addEventListener("change",render);
+
+      function toast(msg,err){els.toast.textContent=msg;els.toast.classList.toggle("err",!!err);els.toast.classList.add("show");
+        clearTimeout(toast._t);toast._t=setTimeout(()=>els.toast.classList.remove("show"),2400)}
+
+      // ---- load + realtime ---------------------------------------------------
+      function fillPlines(){
+        const cur=els.pline.value;
+        const ps=[...new Set(items.map(pl))].filter(p=>p&&p!=="-").sort();
+        els.pline.innerHTML='<option value="">Tutte le linee</option>'+ps.map(p=>'<option value="'+esc(p)+'">'+esc(p)+"</option>").join("");
+        els.pline.value=cur;
+      }
+      async function load(){
+        els.refresh.classList.add("spin");
+        try{
+          const {data,error}=await sb.from(TABLE).select("*");
+          if(error)throw error;
+          items=data||[];
+          fillPlines(); render();
+          els.updated.textContent="Aggiornato "+new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+        }catch(e){toast("Errore di rete",true)}
+        finally{setTimeout(()=>els.refresh.classList.remove("spin"),300)}
+      }
+      els.refresh.addEventListener("click",load);
+      function schedule(){clearTimeout(schedule._t);schedule._t=setTimeout(load,350)}
+      try{sb.channel("mgr-jobs").on("postgres_changes",{event:"*",schema:"public",table:TABLE},schedule).subscribe();}catch(e){}
       load();
-      setInterval(load, 30000);
-      document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+      setInterval(load,30000);
+      document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
     </script>
   </body>
 </html>
