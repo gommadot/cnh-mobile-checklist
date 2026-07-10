@@ -52,11 +52,13 @@ module.exports = async function handler(req, res) {
     });
 
     let sent = 0, removed = 0;
+    const errors = [];
     await Promise.all((subs || []).map(async (s) => {
       try {
         await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 3600 });
         sent++;
       } catch (err) {
+        errors.push({ status: err && err.statusCode, msg: String((err && (err.body || err.message)) || "").slice(0, 220) });
         if (err && (err.statusCode === 404 || err.statusCode === 410)) {
           removed++;
           try {
@@ -69,7 +71,7 @@ module.exports = async function handler(req, res) {
     }));
 
     res.statusCode = 200; res.setHeader("content-type", "application/json");
-    res.end(JSON.stringify({ ok: true, role, total: (subs || []).length, sent, removed }));
+    res.end(JSON.stringify({ ok: true, role, total: (subs || []).length, sent, removed, errors }));
   } catch (e) {
     res.statusCode = 500; res.end("error: " + (e.message || ""));
   }
