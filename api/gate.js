@@ -37,16 +37,17 @@ module.exports = function handler(req, res) {
   }
 
   if (target === "manifest") {
-    if (isApp) {
-      sendFile(res, manifestPath, "application/manifest+json; charset=utf-8");
-      return;
-    }
-    sendHtml(res, 403, "Accesso riservato", "Questa risorsa non e' navigabile da browser.");
+    sendFile(res, manifestPath, "application/manifest+json; charset=utf-8");
     return;
   }
 
   if (target === "manager") {
-    sendFile(res, managerPath, "text/html; charset=utf-8");
+    let html = fs.readFileSync(managerPath, "utf8");
+    html = html.replace("__PUSH_SECRET__", process.env.PUSH_SECRET || "");
+    res.statusCode = 200;
+    res.setHeader("content-type", "text/html; charset=utf-8");
+    res.setHeader("cache-control", "no-store");
+    res.end(html);
     return;
   }
 
@@ -64,12 +65,10 @@ module.exports = function handler(req, res) {
     sendFile(res, indexPath, "text/html; charset=utf-8");
     return;
   }
-  if ((req.headers.cookie || "").includes("cnh_ios_app=1") && isIos) {
+  // App web operatori: iOS (Safari) e Android (Chrome) -> installabile come PWA con push.
+  if (isIos || isAndroid) {
+    if (isIos) res.setHeader("set-cookie", "cnh_ios_app=1; Path=/; Max-Age=31536000; Secure; SameSite=Lax");
     sendFile(res, indexPath, "text/html; charset=utf-8");
-    return;
-  }
-  if (isAndroid) {
-    sendHtml(res, 403, "App richiesta", "Su Android questa applicazione funziona solo tramite APK aziendale.");
     return;
   }
   sendHtml(res, 403, "Accesso riservato", "Questa risorsa non e' navigabile da browser.");
