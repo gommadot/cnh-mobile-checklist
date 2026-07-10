@@ -9,7 +9,7 @@ let vapidReady = false;
 try {
   if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
     webpush.setVapidDetails(
-      process.env.VAPID_SUBJECT || "mailto:notifiche@cnhi-painting.local",
+      "https://mobile-static.vercel.app",
       process.env.VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY
     );
