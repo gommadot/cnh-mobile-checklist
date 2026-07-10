@@ -609,7 +609,7 @@
           <span>Tutto</span>
         </button>
         <button class="work-tab" data-work="paint" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h9v4H3z"></path><path d="M12 10h3v2h-3"></path><path d="M6 13l-1 5h3l.7-5"></path><path d="M17 8l2.2-1"></path><path d="M17 11h2.4"></path><path d="M17 14l2.2 1"></path></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-7.5 7.5a4 4 0 0 1-5.7 0l-.3-.3a4 4 0 0 1 0-5.7L14 4z"></path><path d="M5 20c2 0 3.5-.7 4.5-2"></path></svg>
           <span>Verniciare</span>
         </button>
         <button class="work-tab" data-work="pre" type="button">
@@ -703,7 +703,7 @@
         </div>
         <div class="hist-total">
           <div class="hist-kpi tot"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"></path><path d="M12 3a9 9 0 0 1 9 9h-9z"></path></svg><div class="num" id="historyTot">0</div><div class="lbl">TOTALE</div></div>
-          <div class="hist-kpi vern"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h9v4H3z"></path><path d="M12 10h3v2h-3"></path><path d="M6 13l-1 5h3l.7-5"></path><path d="M17 8l2.2-1"></path><path d="M17 11h2.4"></path><path d="M17 14l2.2 1"></path></svg><div class="num" id="historyVern">0</div><div class="lbl">VERNICIATI</div></div>
+          <div class="hist-kpi vern"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-7.5 7.5a4 4 0 0 1-5.7 0l-.3-.3a4 4 0 0 1 0-5.7L14 4z"></path><path d="M5 20c2 0 3.5-.7 4.5-2"></path></svg><div class="num" id="historyVern">0</div><div class="lbl">VERNICIATI</div></div>
           <div class="hist-kpi pre"><svg viewBox="0 0 24 24"><path d="M3 7h11v10H3z"></path><path d="M14 10h4l3 3v4h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg><div class="num" id="historyPre">0</div><div class="lbl">PRE-SHIP</div></div>
         </div>
         <div class="history-list" id="historyList"></div>
@@ -1095,7 +1095,7 @@
               <div class="work-label">${escapeHtml(workLabel(it))}</div>
               <div class="check-row ${repeatMode ? "repeat-only" : ""}">
                 ${repeatMode ? "" : `<div class="check ${it.verniciato ? "active" : ""} ${workNeed(it) === "paint" ? "next" : ""}" data-action="verniciato">
-                  <span class="check-main"><span class="check-ico"><svg viewBox="0 0 24 24" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h9v4H3z"></path><path d="M12 10h3v2h-3"></path><path d="M6 13l-1 5h3l.7-5"></path><path d="M17 8l2.2-1"></path><path d="M17 11h2.4"></path><path d="M17 14l2.2 1"></path></svg></span><span class="label">VERNICIATO</span></span>
+                  <span class="check-main"><span class="check-ico"><svg viewBox="0 0 24 24" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-7.5 7.5a4 4 0 0 1-5.7 0l-.3-.3a4 4 0 0 1 0-5.7L14 4z"></path><path d="M5 20c2 0 3.5-.7 4.5-2"></path></svg></span><span class="label">VERNICIATO</span></span>
                   ${vWhen ? `<span class="when">${escapeHtml(vWhen)}</span>` : ""}
                 </div>`}
                 <div class="check ${it.preshipment ? "active" : ""} ${workNeed(it) === "pre" || repeatMode ? "next" : ""}" data-action="preshipment" data-repeat="${repeatMode ? "1" : "0"}">
@@ -1131,7 +1131,7 @@
           els.historyList.innerHTML = `<div class="history-empty">📭<br />Nessuna unità lavorata in questa data.</div>`;
           return;
         }
-        const brush = `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h9v4H3z"></path><path d="M12 10h3v2h-3"></path><path d="M6 13l-1 5h3l.7-5"></path><path d="M17 8l2.2-1"></path><path d="M17 11h2.4"></path><path d="M17 14l2.2 1"></path></svg>`;
+        const brush = `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-7.5 7.5a4 4 0 0 1-5.7 0l-.3-.3a4 4 0 0 1 0-5.7L14 4z"></path><path d="M5 20c2 0 3.5-.7 4.5-2"></path></svg>`;
         const truck = `<svg viewBox="0 0 24 24"><path d="M3 7h11v10H3z"></path><path d="M14 10h4l3 3v4h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>`;
         els.historyList.innerHTML = rows.map(it => {
           const priority = isPriority(it);
