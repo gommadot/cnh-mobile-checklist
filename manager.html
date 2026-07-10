@@ -151,6 +151,12 @@
       }
       .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
       .toggle.on { background: var(--green); border-color: var(--green); color: #fff; }
+      .sollecita-btn {
+        margin-top: 8px; width: 100%; padding: 9px; border-radius: 8px;
+        border: 1px solid #F59E0B; background: #FFF7ED; color: #92400E;
+        font-weight: 800; font-size: 12px; cursor: pointer;
+      }
+      .sollecita-btn:active { transform: scale(0.98); }
       .empty {
         border: 2px dashed var(--line); background: #fff; color: var(--muted); border-radius: 8px;
         padding: 26px 16px; text-align: center; font-weight: 850;
@@ -547,6 +553,7 @@
             ${it.note ? escapeHtml(it.note) : ""}
           </div>
           ${editable ? `<div class="toggles"><button class="toggle ${it.verniciato ? "on" : ""}" data-action="verniciato" type="button">VERNICIATO</button><button class="toggle ${it.preshipment ? "on" : ""}" data-action="preshipment" type="button">PRE-SHIPMENT</button></div>` : ""}
+          ${statusOf(it) !== "done" ? `<button class="sollecita-btn" data-id="${it.id}" type="button">&#128276; Sollecita ${!it.verniciato ? "verniciatura" : "pre-shipment"}</button>` : ""}
         </div>`;
       }
       function renderList() {
@@ -635,6 +642,24 @@
           .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, scheduleRefresh)
           .subscribe();
       } catch (e) { console.warn(e); }
+      let solleciti = null;
+      try { solleciti = sb.channel("solleciti"); solleciti.subscribe(); } catch (e) { console.warn("broadcast KO:", e); }
+      function sollecita(id) {
+        const it = items.find(x => String(x.id) === String(id));
+        if (!it) return;
+        const role = !it.verniciato ? "paint" : !it.preshipment ? "pre" : null;
+        if (!role) { showToast("Unita gia completa"); return; }
+        try {
+          if (solleciti) solleciti.send({ type: "broadcast", event: "sollecito", payload: {
+            unitId: it.id, ident: ident(it), pline: String(it.pline || "-"), role, by: "Ufficio", ts: Date.now()
+          }});
+          showToast("Sollecito inviato: " + ident(it) + " (" + (role === "pre" ? "pre-shipment" : "verniciatura") + ")");
+        } catch (e) { showToast("Errore invio sollecito", true); }
+      }
+      document.addEventListener("click", e => {
+        const b = e.target.closest(".sollecita-btn");
+        if (b) sollecita(b.dataset.id);
+      });
       els.workDate.value = fmtDate(new Date());
       load();
       setInterval(load, 30000);

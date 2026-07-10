@@ -59,6 +59,12 @@
         position: relative;
       }
       .header-icon svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2.35; fill: none; }
+      .notif-badge {
+        position: absolute; top: -3px; right: -5px; min-width: 16px; height: 16px;
+        padding: 0 4px; border-radius: 8px; background: #FF375F; color: #fff;
+        font-size: 10px; font-weight: 900; line-height: 16px; text-align: center;
+        border: 2px solid var(--red); box-sizing: content-box; pointer-events: none;
+      }
       .header-icon.priority-on::before,
       .header-icon.has-dot::before {
         content: ""; position: absolute; top: 4px; right: 3px;
@@ -491,6 +497,21 @@
         border: 2px dashed var(--grey-line); border-radius: 12px; padding: 26px 20px;
         text-align: center; color: var(--grey); background: var(--soft); font-weight: 650; line-height: 1.6;
       }
+      .notif-actions { display: flex; justify-content: flex-end; }
+      .notif-clear {
+        border: 1px solid var(--grey-line); background: var(--soft); color: var(--ink);
+        border-radius: 9px; padding: 8px 12px; font-weight: 800; font-size: 12px; cursor: pointer;
+      }
+      .notif-item {
+        border: 1px solid #E8EEF5; border-left: 4px solid var(--grey-line); border-radius: 12px;
+        padding: 11px 12px; margin-bottom: 9px; background: #fff; box-shadow: 0 1px 4px rgba(15,23,42,0.05); cursor: pointer;
+      }
+      .notif-item.unread { border-left-color: var(--red); }
+      .notif-top { display: flex; align-items: center; gap: 8px; }
+      .notif-ident { font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; font-size: 15px; font-weight: 900; color: var(--ink); }
+      .notif-work { margin-top: 6px; font-size: 12px; font-weight: 800; color: var(--ink-soft); display: inline-flex; align-items: center; gap: 6px; }
+      .notif-work i.fa-solid { font-size: 13px; color: #1D4ED8; }
+      .notif-meta { margin-top: 4px; font-size: 11px; color: var(--grey); }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       .modal {
         background: var(--white); border-radius: 18px; max-width: 380px; width: 100%;
@@ -621,8 +642,9 @@
             <button class="header-icon" id="searchFocusBtn" type="button" aria-label="Cerca">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
             </button>
-            <button class="header-icon has-dot" id="priorityFilter" type="button" aria-pressed="false" aria-label="Filtra priorita">
+            <button class="header-icon" id="notifBtn" type="button" aria-label="Notifiche">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>
+              <span class="notif-badge" id="notifBadge" hidden>0</span>
             </button>
           </div>
         </div>
@@ -747,6 +769,20 @@
       </aside>
     </div>
 
+    <div class="side-panel" id="notifPanel">
+      <aside class="panel" role="dialog" aria-modal="true" aria-labelledby="notifTitle">
+        <div class="panel-head">
+          <div class="panel-titles">
+            <div class="panel-title" id="notifTitle">Notifiche</div>
+            <div class="panel-sub">Solleciti dall'ufficio</div>
+          </div>
+          <button class="panel-close" id="notifCloseBtn" type="button" aria-label="Chiudi">&times;</button>
+        </div>
+        <div class="notif-actions"><button class="notif-clear" id="notifClearBtn" type="button">Svuota</button></div>
+        <div class="history-list" id="notifList"></div>
+      </aside>
+    </div>
+
     <div class="modal-backdrop" id="confirmModal">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
         <div class="modal-icon" id="confirmIcon">
@@ -811,7 +847,12 @@
         search: document.getElementById("search"),
         searchFocusBtn: document.getElementById("searchFocusBtn"),
         pline: document.getElementById("plineFilter"),
-        priorityFilter: document.getElementById("priorityFilter"),
+        notifBtn: document.getElementById("notifBtn"),
+        notifBadge: document.getElementById("notifBadge"),
+        notifPanel: document.getElementById("notifPanel"),
+        notifList: document.getElementById("notifList"),
+        notifClose: document.getElementById("notifCloseBtn"),
+        notifClear: document.getElementById("notifClearBtn"),
         sectionTabs: Array.from(document.querySelectorAll(".section-tab")),
         workTabs: Array.from(document.querySelectorAll(".work-tab")),
         workTabsWrap: document.getElementById("workTabs"),
@@ -1278,6 +1319,11 @@
           .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, scheduleRefresh)
           .subscribe();
       } catch (e) { console.warn("Realtime KO:", e); }
+      try {
+        sb.channel("solleciti", { config: { broadcast: { self: false } } })
+          .on("broadcast", { event: "sollecito" }, ({ payload }) => onSollecito(payload))
+          .subscribe();
+      } catch (e) { console.warn("Broadcast KO:", e); }
 
       // === Modal conferma ======================================================
       const confirmModal = document.getElementById("confirmModal");
@@ -1343,16 +1389,69 @@
         els.search.scrollIntoView({ block: "nearest", behavior: "smooth" });
       });
       els.pline.addEventListener("change", renderList);
-      els.priorityFilter.addEventListener("click", () => {
-        priorityOnly = !priorityOnly;
-        els.priorityFilter.classList.toggle("priority-on", priorityOnly);
-        els.priorityFilter.setAttribute("aria-pressed", priorityOnly ? "true" : "false");
-        renderList();
-      });
-      function syncPriorityBtn() {
-        els.priorityFilter.classList.toggle("priority-on", priorityOnly);
-        els.priorityFilter.setAttribute("aria-pressed", priorityOnly ? "true" : "false");
+      // Il campanello ora e' "Notifiche"; il filtro priorita e' gestito dalla card Prioritarie.
+      function syncPriorityBtn() {}
+      // === Notifiche (solleciti dall'ufficio, per reparto) =====================
+      const NOTIF_KEY = "cnh-mobile-notifs";
+      let notifs = [];
+      try { notifs = JSON.parse(localStorage.getItem(NOTIF_KEY) || "[]") || []; } catch (e) { notifs = []; }
+      function saveNotifs() { try { localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs.slice(0, 50))); } catch (e) {} }
+      function unreadCount() { return notifs.filter(n => !n.read).length; }
+      function updateNotifBadge() {
+        const n = unreadCount();
+        els.notifBadge.textContent = n > 9 ? "9+" : String(n);
+        els.notifBadge.hidden = n === 0;
       }
+      function renderNotifs() {
+        if (!notifs.length) {
+          els.notifList.innerHTML = `<div class="history-empty">🔔<br />Nessun sollecito ricevuto.</div>`;
+          return;
+        }
+        els.notifList.innerHTML = notifs.map(n => `
+          <div class="notif-item ${n.read ? "" : "unread"}" data-ident="${escapeHtml(n.ident)}">
+            <div class="notif-top"><span class="hist-pline">${escapeHtml(n.pline)}</span><span class="notif-ident">${escapeHtml(n.ident)}</span></div>
+            <div class="notif-work"><i class="fa-solid ${n.role === "pre" ? "fa-truck" : "fa-paintbrush"}"></i> ${escapeHtml(n.work)}</div>
+            <div class="notif-meta">${escapeHtml(n.by || "Ufficio")} · ${escapeHtml(formatTime(n.ts))}</div>
+          </div>`).join("");
+      }
+      function onSollecito(p) {
+        if (!p || !p.unitId) return;
+        const role = p.role || "all";
+        if (opRole && opRole !== "all" && role !== "all" && role !== opRole) return; // non e' per il mio reparto
+        const work = role === "pre" ? "Pre-shipment" : "Verniciatura";
+        const notif = { unitId: p.unitId, ident: p.ident || "-", pline: p.pline || "-", role, work, by: p.by || "Ufficio", ts: p.ts || Date.now(), read: false };
+        notifs = notifs.filter(n => !(n.unitId === notif.unitId && n.role === notif.role));
+        notifs.unshift(notif);
+        notifs = notifs.slice(0, 50);
+        saveNotifs();
+        updateNotifBadge();
+        renderNotifs();
+        showToast("🔔 Sollecito: " + work + " " + notif.ident);
+        if (navigator.vibrate) { try { navigator.vibrate(200); } catch (e) {} }
+        if (window.Notification && Notification.permission === "granted") {
+          try { new Notification("Sollecito lavorazione", { body: work + " — " + notif.ident + " (" + notif.pline + ")", tag: String(notif.unitId) }); } catch (e) {}
+        }
+      }
+      function openNotifPanel() {
+        notifs.forEach(n => { n.read = true; });
+        saveNotifs();
+        updateNotifBadge();
+        renderNotifs();
+        els.notifPanel.classList.add("show");
+        if (window.Notification && Notification.permission === "default") { try { Notification.requestPermission(); } catch (e) {} }
+      }
+      function closeNotifPanel() { els.notifPanel.classList.remove("show"); }
+      els.notifBtn.addEventListener("click", openNotifPanel);
+      els.notifClose.addEventListener("click", closeNotifPanel);
+      els.notifPanel.addEventListener("click", (e) => { if (e.target === els.notifPanel) closeNotifPanel(); });
+      els.notifClear.addEventListener("click", () => { notifs = []; saveNotifs(); updateNotifBadge(); renderNotifs(); });
+      els.notifList.addEventListener("click", (e) => {
+        const item = e.target.closest(".notif-item");
+        if (!item) return;
+        els.search.value = item.dataset.ident || "";
+        renderList();
+        closeNotifPanel();
+      });
       function setView(section, priority) {
         activeSection = section;
         priorityOnly = !!priority;
@@ -1426,6 +1525,7 @@
         localStorage.setItem(ROLE_KEY, opRole);
         updateOpDisplay();
         applyRole();
+        if (window.Notification && Notification.permission === "default") { try { Notification.requestPermission(); } catch (e) {} }
         setupModal.classList.remove("show");
       }
       setupSaveBtn.addEventListener("click", saveSetup);
@@ -1465,6 +1565,8 @@
       els.processedDate.value = formatDateInput(new Date());
       updateProcessedDateInput();
       updateOpDisplay();
+      updateNotifBadge();
+      renderNotifs();
       els.workTabs.forEach(t => t.classList.toggle("active", t.dataset.work === activeWork));
       if (!opName || !opRole) { openSetup(); } else { maybeShowIosInstall(); }
       loadList();
