@@ -134,7 +134,7 @@
       .work-tab svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2.2; fill: none; }
       .work-tab i.fa-solid { font-size: 15px; line-height: 1; }
       .check-ico { align-items: center; justify-content: center; }
-      .check-ico i.fa-solid { font-size: 15px; line-height: 1; }
+      .check-ico i.fa-solid { font-size: 14px; line-height: 1; }
       .hist-op i.fa-solid { font-size: 13px; line-height: 1; }
       .hist-kpi i.fa-solid { font-size: 18px; line-height: 1; }
       .work-tab.active {
@@ -197,7 +197,7 @@
       main { flex: 1; padding: 8px 14px calc(98px + env(safe-area-inset-bottom)); }
       .card {
         background: var(--white); border-radius: 13px;
-        padding: 13px 13px 12px 17px; margin-bottom: 10px;
+        padding: 11px 12px 11px 15px; margin-bottom: 8px;
         box-shadow: 0 2px 8px rgba(15,23,42,0.06);
         border: 1px solid #E8EEF5;
         border-left: 4px solid transparent;
@@ -236,8 +236,8 @@
       }
       .pline {
         display: inline-flex; align-items: center; gap: 4px;
-        padding: 6px 10px; background: var(--red); color: var(--white);
-        font-size: 12px; font-weight: 900; border-radius: 8px;
+        padding: 5px 9px; background: var(--red); color: var(--white);
+        font-size: 11px; font-weight: 900; border-radius: 8px;
         letter-spacing: 0.4px; flex-shrink: 0; line-height: 1.2;
       }
       .card.complete .pline { background: var(--green); }
@@ -250,8 +250,8 @@
       }
       .id-value {
         font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
-        font-size: clamp(17px, 5vw, 22px); color: var(--ink); font-weight: 950;
-        letter-spacing: 0.4px; line-height: 1.05;
+        font-size: clamp(15px, 4.3vw, 19px); color: var(--ink); font-weight: 950;
+        letter-spacing: 0.3px; line-height: 1.05;
         white-space: normal; overflow-wrap: anywhere; word-break: break-word;
         min-width: 0;
       }
@@ -268,8 +268,8 @@
       }
       .state-chip {
         display: inline-flex; align-items: center;
-        padding: 5px 9px; border-radius: 7px; font-size: 10px;
-        font-weight: 850; letter-spacing: 0.4px; text-transform: uppercase;
+        padding: 4px 8px; border-radius: 7px; font-size: 9px;
+        font-weight: 850; letter-spacing: 0.3px; text-transform: uppercase;
         background: var(--soft); color: var(--grey); border: 1px solid var(--grey-line);
         white-space: nowrap; max-width: 150px;
         overflow: hidden; text-overflow: ellipsis;
@@ -279,8 +279,8 @@
       .state-chip.state-fine-linea { background: var(--blue-bg); color: var(--blue); border-color: #bae6fd; }
       .section-chip {
         display: inline-flex; align-items: center;
-        padding: 5px 9px; border-radius: 7px; font-size: 10px;
-        font-weight: 850; letter-spacing: 0.4px; text-transform: uppercase;
+        padding: 4px 8px; border-radius: 7px; font-size: 9px;
+        font-weight: 850; letter-spacing: 0.3px; text-transform: uppercase;
         background: #FFF1F2; color: var(--red); border: 1px solid #FFE1E5;
         white-space: nowrap; flex: 0 0 auto; line-height: 1.4;
       }
@@ -288,16 +288,16 @@
       .section-chip.todo { background: #fee2e2; color: var(--red); border-color: #fecaca; }
       .section-chip.repeat { background: var(--amber-bg); color: var(--amber); border-color: #fde68a; }
       .work-label {
-        margin-top: 12px; font-size: 11px; font-weight: 900; color: #475569;
-        text-transform: uppercase; letter-spacing: .6px;
+        margin-top: 10px; font-size: 10px; font-weight: 900; color: #475569;
+        text-transform: uppercase; letter-spacing: .5px;
       }
       .check-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 9px; }
       .check-row.repeat-only { grid-template-columns: 1fr; }
       .check {
         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-        padding: 11px 8px; border-radius: 12px; border: 1.5px solid #DCE5F0;
+        padding: 9px 8px; border-radius: 12px; border: 1.5px solid #DCE5F0;
         background: var(--white); cursor: pointer; user-select: none;
-        transition: all 130ms ease; min-height: 46px;
+        transition: all 130ms ease; min-height: 42px;
       }
       .check-main { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; }
       .check-ico { width: 17px; height: 17px; flex-shrink: 0; color: #1D4ED8; display: inline-flex; }
@@ -306,7 +306,7 @@
         border-color: #93c5fd; background: #EFF6FF;
         box-shadow: inset 0 0 0 1px rgba(37,99,235,.08);
       }
-      .check .label { font-size: 11.5px; font-weight: 900; color: #1D4ED8; letter-spacing: 0.2px; }
+      .check .label { font-size: 10.5px; font-weight: 900; color: #1D4ED8; letter-spacing: 0.2px; }
       .check .when {
         display: block; max-width: 100%;
         font-size: 9.5px; font-weight: 800; line-height: 1.15;
@@ -543,6 +543,36 @@
       .btn-cancel:active { background: var(--red-dark); }
       .btn-ok { background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: var(--white); box-shadow: 0 2px 8px rgba(22,101,52,0.3); }
       .btn-ok:active { background: var(--green); }
+      #opBtn { cursor: pointer; border-radius: 12px; }
+      #opBtn:active { transform: scale(0.98); }
+      .setup-modal { max-width: 400px; }
+      .setup-hdr { display: flex; align-items: center; gap: 12px; padding: 20px 20px 4px; }
+      .setup-avatar {
+        width: 46px; height: 46px; border-radius: 50%; background: var(--soft); flex-shrink: 0;
+        display: inline-flex; align-items: center; justify-content: center; color: var(--red);
+      }
+      .setup-avatar svg { width: 26px; height: 26px; }
+      .setup-title { font-size: 18px; font-weight: 900; color: var(--ink); }
+      .setup-desc { font-size: 12px; color: var(--grey); font-weight: 650; margin-top: 1px; }
+      .setup-body { padding: 6px 20px 4px; }
+      .setup-lbl { font-size: 11px; font-weight: 850; letter-spacing: .4px; text-transform: uppercase; color: var(--grey); margin: 12px 2px 6px; }
+      .setup-input {
+        width: 100%; padding: 12px; border: 1px solid var(--grey-line); border-radius: 12px;
+        font-size: 16px; font-weight: 700; color: var(--ink); background: var(--white); -webkit-appearance: none;
+      }
+      .setup-input:focus { outline: 2px solid rgba(192,0,0,.3); border-color: var(--red); }
+      .setup-roles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+      .setup-role {
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        padding: 12px 6px; border: 1.5px solid var(--grey-line); border-radius: 12px;
+        background: #fff; cursor: pointer; color: var(--ink-soft);
+      }
+      .setup-role i.fa-solid { font-size: 20px; }
+      .setup-role span { font-size: 11px; font-weight: 850; }
+      .setup-role.sel { border-color: var(--red); background: #FFF1F2; color: var(--red); box-shadow: 0 2px 8px rgba(192,0,0,.14); }
+      .setup-role:active { transform: scale(0.97); }
+      .setup-actions { padding: 10px 20px 20px; }
+      .setup-actions .btn { width: 100%; min-height: 50px; }
       @media (min-width: 600px) {
         main { padding-left: 24px; padding-right: 24px; }
         .check-row { gap: 12px; }
@@ -559,13 +589,14 @@
         .card { padding: 12px 10px 11px 14px; }
         .card-top { grid-template-columns: auto minmax(0, 1fr) auto; }
         .card-chevron { display: none; }
-        .pline { padding: 5px 9px; font-size: 11.5px; }
-        .id-value { font-size: clamp(16px, 4.8vw, 21px); }
+        .pline { padding: 4px 8px; font-size: 11px; }
+        .id-value { font-size: clamp(14px, 4.2vw, 18px); }
         .priority-badge { min-width: 44px; height: 26px; padding: 0 7px; }
         .stats .stat { padding: 8px 5px; gap: 4px; }
         .stat-ico { width: 17px; height: 17px; }
-        .check { padding: 10px 6px; min-height: 44px; }
+        .check { padding: 8px 6px; min-height: 40px; }
         .check-ico { width: 16px; height: 16px; }
+        .check-ico i.fa-solid { font-size: 13px; }
       }
       @media (min-width: 460px) {
         .section-tab { font-size: clamp(11px, 2vw, 13px); }
@@ -653,9 +684,9 @@
       </div>
       <main id="list"></main>
       <div class="footer-bar">
-        <div class="user">
+        <div class="user" id="opBtn" role="button" tabindex="0" aria-label="Impostazioni operatore">
           <span class="user-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg></span>
-          <span class="user-text"><span class="user-role">Operatore</span><b id="opName">—</b></span>
+          <span class="user-text"><span class="user-role" id="opRole">Operatore</span><b id="opName">—</b></span>
         </div>
         <button class="refresh-btn" id="refreshBtn" type="button">
           <span class="arr">&#x21bb;</span> Aggiorna
@@ -736,6 +767,31 @@
       </div>
     </div>
 
+    <div class="modal-backdrop" id="setupModal">
+      <div class="modal setup-modal" role="dialog" aria-modal="true" aria-labelledby="setupTitle">
+        <div class="setup-hdr">
+          <span class="setup-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg></span>
+          <div>
+            <div class="setup-title" id="setupTitle">Operatore</div>
+            <div class="setup-desc">Imposta nome e reparto</div>
+          </div>
+        </div>
+        <div class="setup-body">
+          <div class="setup-lbl">Nome / ID</div>
+          <input class="setup-input" id="setupName" type="text" placeholder="es. m.rossi" autocomplete="off" />
+          <div class="setup-lbl">Reparto</div>
+          <div class="setup-roles" id="setupRoles">
+            <button class="setup-role" data-role="paint" type="button"><i class="fa-solid fa-paintbrush"></i><span>Verniciatura</span></button>
+            <button class="setup-role" data-role="pre" type="button"><i class="fa-solid fa-truck"></i><span>Pre-shipment</span></button>
+            <button class="setup-role" data-role="all" type="button"><i class="fa-solid fa-list-check"></i><span>Tutto</span></button>
+          </div>
+        </div>
+        <div class="setup-actions">
+          <button class="btn btn-ok" id="setupSaveBtn" type="button">SALVA</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       // ==== CONFIG SUPABASE ====================================================
@@ -746,12 +802,9 @@
 
       // ==== OPERATORE ===========================================================
       const OP_KEY = "cnh-mobile-op-name";
+      const ROLE_KEY = "cnh-mobile-op-role";
       let opName = localStorage.getItem(OP_KEY) || "";
-      if (!opName) {
-        opName = (prompt("Inserisci il tuo nome o ID operatore:") || "operatore").trim();
-        localStorage.setItem(OP_KEY, opName);
-      }
-      document.getElementById("opName").textContent = opName;
+      let opRole = localStorage.getItem(ROLE_KEY) || ""; // "paint" | "pre" | "all"
 
       const els = {
         list: document.getElementById("list"),
@@ -796,7 +849,7 @@
       };
       let items = [];
       let activeSection = "deliberato";
-      let activeWork = "all";
+      let activeWork = opRole === "paint" ? "paint" : opRole === "pre" ? "pre" : "all";
       let priorityOnly = false;
 
       function showToast(message, isError) {
@@ -1342,14 +1395,57 @@
       });
       els.historyPrev.addEventListener("click", () => shiftHistoryDay(-1));
       els.historyNext.addEventListener("click", () => shiftHistoryDay(1));
-      document.getElementById("opName").addEventListener("click", () => {
-        const newName = prompt("Cambia operatore:", opName);
-        if (newName && newName.trim()) {
-          opName = newName.trim();
-          localStorage.setItem(OP_KEY, opName);
-          document.getElementById("opName").textContent = opName;
-        }
+      // === Setup operatore (nome + reparto) ====================================
+      const setupModal = document.getElementById("setupModal");
+      const setupName = document.getElementById("setupName");
+      const setupRoles = document.getElementById("setupRoles");
+      const setupSaveBtn = document.getElementById("setupSaveBtn");
+      let setupRole = "all";
+      function roleLabel(role) {
+        return role === "paint" ? "Verniciatura" : role === "pre" ? "Pre-shipment" : "Tutto";
+      }
+      function selectSetupRole(role) {
+        setupRole = role || "all";
+        Array.from(setupRoles.querySelectorAll(".setup-role"))
+          .forEach(b => b.classList.toggle("sel", b.dataset.role === setupRole));
+      }
+      setupRoles.addEventListener("click", (e) => {
+        const b = e.target.closest(".setup-role");
+        if (b) selectSetupRole(b.dataset.role);
       });
+      function openSetup() {
+        setupName.value = opName || "";
+        selectSetupRole(opRole || "all");
+        setupModal.classList.add("show");
+        setTimeout(() => setupName.focus(), 60);
+      }
+      function saveSetup() {
+        opName = (setupName.value || "").trim() || "operatore";
+        opRole = setupRole || "all";
+        localStorage.setItem(OP_KEY, opName);
+        localStorage.setItem(ROLE_KEY, opRole);
+        updateOpDisplay();
+        applyRole();
+        setupModal.classList.remove("show");
+      }
+      setupSaveBtn.addEventListener("click", saveSetup);
+      setupModal.addEventListener("click", (e) => {
+        if (e.target === setupModal && opName && opRole) setupModal.classList.remove("show");
+      });
+      const opBtn = document.getElementById("opBtn");
+      opBtn.addEventListener("click", openSetup);
+      opBtn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSetup(); }
+      });
+      function updateOpDisplay() {
+        document.getElementById("opName").textContent = opName || "—";
+        document.getElementById("opRole").textContent = roleLabel(opRole);
+      }
+      function applyRole() {
+        activeWork = opRole === "paint" ? "paint" : opRole === "pre" ? "pre" : "all";
+        els.workTabs.forEach(t => t.classList.toggle("active", t.dataset.work === activeWork));
+        renderList();
+      }
       function maybeShowIosInstall() {
         const ua = navigator.userAgent || "";
         const isIos = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -1368,7 +1464,9 @@
       // === Init + polling fallback =============================================
       els.processedDate.value = formatDateInput(new Date());
       updateProcessedDateInput();
-      maybeShowIosInstall();
+      updateOpDisplay();
+      els.workTabs.forEach(t => t.classList.toggle("active", t.dataset.work === activeWork));
+      if (!opName || !opRole) { openSetup(); } else { maybeShowIosInstall(); }
       loadList();
       setInterval(loadList, 30000);
       document.addEventListener("visibilitychange", () => {
