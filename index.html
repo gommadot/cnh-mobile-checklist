@@ -180,11 +180,10 @@
       .stats .stat.priority .stat-ico { color: var(--amber); }
       .stats .stat.total .stat-ico { color: var(--ink); }
       .stats .stat.done .stat-ico { color: var(--green); }
-      .stats .stat.total, .stats .stat.priority, .stats .stat.done {
+      .stats .stat.priority, .stats .stat.done {
         cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 100ms ease;
       }
-      .stats .stat.total:active, .stats .stat.priority:active, .stats .stat.done:active { transform: scale(0.96); }
-      .stats .stat.total.active { background: #EEF2FB; border-color: #B7C6E8; box-shadow: 0 2px 10px rgba(30,64,175,0.14); }
+      .stats .stat.priority:active, .stats .stat.done:active { transform: scale(0.96); }
       .stats .stat.priority.active { background: #FFF7ED; border-color: #FDBA74; box-shadow: 0 2px 10px rgba(180,83,9,0.16); }
       .stats .stat.done.active { background: #ECFDF5; border-color: #86EFAC; box-shadow: 0 2px 10px rgba(22,101,52,0.18); }
       .stats .stat.priority.active .num, .stats .stat.priority.active .lbl { color: var(--amber); }
@@ -416,39 +415,75 @@
         padding: calc(env(safe-area-inset-top) + 14px) 16px 18px;
         display: flex; flex-direction: column; gap: 14px;
       }
-      .panel-head { display: flex; align-items: center; gap: 10px; }
-      .panel-title { flex: 1; font-size: 18px; font-weight: 900; color: var(--ink); }
+      .panel-head { display: flex; align-items: flex-start; gap: 10px; }
+      .panel-titles { flex: 1; min-width: 0; }
+      .panel-title { font-size: 19px; font-weight: 900; color: var(--ink); line-height: 1.1; }
+      .panel-sub { margin-top: 3px; font-size: 12px; font-weight: 700; color: var(--grey); text-transform: capitalize; }
       .panel-close {
-        width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--grey-line);
-        background: var(--soft); color: var(--ink); font-size: 26px; cursor: pointer;
+        width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--grey-line);
+        background: var(--soft); color: var(--ink); font-size: 26px; line-height: 1; cursor: pointer; flex-shrink: 0;
       }
-      .date-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+      .date-row { display: grid; grid-template-columns: 44px 1fr 44px auto; gap: 7px; align-items: center; }
       .date-row input {
-        width: 100%; padding: 11px 12px; border: 1px solid var(--grey-line);
-        border-radius: 10px; font-size: 15px; color: var(--ink); background: var(--white);
+        width: 100%; padding: 11px 8px; border: 1px solid var(--grey-line);
+        border-radius: 10px; font-size: 14px; font-weight: 700; color: var(--ink); background: var(--white);
+        text-align: center; -webkit-appearance: none;
       }
+      .day-nav {
+        width: 44px; height: 44px; border: 1px solid var(--grey-line); background: var(--soft);
+        border-radius: 10px; font-size: 22px; font-weight: 800; color: var(--ink); cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+      }
+      .day-nav:active { transform: scale(0.95); }
       .today-btn {
         border: none; background: var(--red); color: var(--white); border-radius: 10px;
-        padding: 12px 14px; font-weight: 800; cursor: pointer;
+        padding: 0 13px; height: 44px; font-weight: 800; font-size: 13px; cursor: pointer;
       }
-      .history-total {
-        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+      .today-btn:active { transform: scale(0.96); }
+      .hist-total { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .hist-kpi {
+        display: flex; flex-direction: column; align-items: center; gap: 3px;
+        padding: 11px 6px; border: 1px solid #E7EDF4; border-radius: 12px; background: #fff;
+        box-shadow: 0 1px 3px rgba(15,23,42,0.05); color: var(--ink);
       }
-      .history-total .stat { border-radius: 8px; }
-      .history-list { overflow: auto; padding-right: 2px; }
-      .history-item {
-        border: 1px solid var(--grey-line); border-radius: 10px; padding: 10px;
-        margin-bottom: 8px; background: var(--soft);
+      .hist-kpi svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+      .hist-kpi .num { font-size: 22px; font-weight: 900; line-height: 1; color: var(--ink); }
+      .hist-kpi .lbl { font-size: 8.5px; font-weight: 850; letter-spacing: .4px; color: var(--grey); }
+      .hist-kpi.vern { color: var(--green); } .hist-kpi.vern .num { color: var(--green); }
+      .hist-kpi.pre { color: var(--blue); } .hist-kpi.pre .num { color: var(--blue); }
+      .history-list { overflow: auto; padding-right: 2px; margin: 0 -2px; flex: 1 1 auto; min-height: 0; }
+      .hist-card {
+        border: 1px solid #E8EEF5; border-left: 4px solid var(--green); border-radius: 12px;
+        padding: 11px 12px; margin-bottom: 9px; background: #fff; box-shadow: 0 1px 4px rgba(15,23,42,0.05);
       }
-      .history-item.priority { border-color: #F59E0B; background: #FFFBEB; }
-      .history-id {
-        display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;
-        font-family: ui-monospace, "Cascadia Mono", Menlo, monospace; font-weight: 900;
+      .hist-card.priority { border-left-color: var(--red); }
+      .hist-top { display: flex; align-items: center; gap: 8px; }
+      .hist-pline {
+        padding: 4px 8px; background: var(--red); color: #fff; font-size: 11px; font-weight: 900;
+        border-radius: 7px; letter-spacing: .3px; flex-shrink: 0; line-height: 1.2;
       }
-      .history-meta { margin-top: 5px; font-size: 12px; color: var(--grey); line-height: 1.35; }
+      .hist-ident {
+        flex: 1; min-width: 0; font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
+        font-size: 16px; font-weight: 900; color: var(--ink); overflow-wrap: anywhere;
+      }
+      .hist-badge {
+        font-size: 10px; font-weight: 900; color: var(--red); background: #FFF1F2;
+        border: 1px solid #FFE1E5; border-radius: 6px; padding: 3px 7px; flex-shrink: 0;
+      }
+      .hist-state {
+        margin-top: 6px; font-size: 10px; font-weight: 800; letter-spacing: .4px;
+        text-transform: uppercase; color: var(--grey);
+      }
+      .hist-ops { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+      .hist-op {
+        display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 750;
+        color: var(--green); background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 6px 9px;
+      }
+      .hist-op svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0; }
+      .hist-op.pre { color: var(--blue); background: var(--blue-bg); border-color: #BAE6FD; }
       .history-empty {
-        border: 2px dashed var(--grey-line); border-radius: 12px; padding: 22px;
-        text-align: center; color: var(--grey); background: var(--soft);
+        border: 2px dashed var(--grey-line); border-radius: 12px; padding: 26px 20px;
+        text-align: center; color: var(--grey); background: var(--soft); font-weight: 650; line-height: 1.6;
       }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       .modal {
@@ -597,7 +632,7 @@
         <input type="date" id="processedDate" />
       </div>
       <div class="stats">
-        <div class="stat total" id="statTotCard" role="button" tabindex="0" aria-label="Mostra tutte le unità">
+        <div class="stat total">
           <span class="stat-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"></path><path d="M12 3a9 9 0 0 1 9 9h-9z"></path></svg></span>
           <div class="stat-body"><div class="num" id="statTot">0</div><div class="lbl">TOTALE</div></div>
         </div>
@@ -654,17 +689,22 @@
     <div class="side-panel" id="historyPanel">
       <aside class="panel" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
         <div class="panel-head">
-          <div class="panel-title" id="historyTitle">Unita lavorate</div>
+          <div class="panel-titles">
+            <div class="panel-title" id="historyTitle">Unità lavorate</div>
+            <div class="panel-sub" id="historySub"></div>
+          </div>
           <button class="panel-close" id="historyCloseBtn" type="button" aria-label="Chiudi">&times;</button>
         </div>
         <div class="date-row">
+          <button class="day-nav" id="historyPrevBtn" type="button" aria-label="Giorno precedente">&lsaquo;</button>
           <input type="date" id="historyDate" />
+          <button class="day-nav" id="historyNextBtn" type="button" aria-label="Giorno successivo">&rsaquo;</button>
           <button class="today-btn" id="historyTodayBtn" type="button">OGGI</button>
         </div>
-        <div class="history-total">
-          <div class="stat"><div class="num" id="historyTot">0</div><div class="lbl">TOT</div></div>
-          <div class="stat"><div class="num" id="historyVern">0</div><div class="lbl">VERN.</div></div>
-          <div class="stat"><div class="num" id="historyPre">0</div><div class="lbl">PRE-SHIP</div></div>
+        <div class="hist-total">
+          <div class="hist-kpi tot"><svg viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"></path><path d="M12 3a9 9 0 0 1 9 9h-9z"></path></svg><div class="num" id="historyTot">0</div><div class="lbl">TOTALE</div></div>
+          <div class="hist-kpi vern"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h9v4H3z"></path><path d="M12 10h3v2h-3"></path><path d="M6 13l-1 5h3l.7-5"></path><path d="M17 8l2.2-1"></path><path d="M17 11h2.4"></path><path d="M17 14l2.2 1"></path></svg><div class="num" id="historyVern">0</div><div class="lbl">VERNICIATI</div></div>
+          <div class="hist-kpi pre"><svg viewBox="0 0 24 24"><path d="M3 7h11v10H3z"></path><path d="M14 10h4l3 3v4h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg><div class="num" id="historyPre">0</div><div class="lbl">PRE-SHIP</div></div>
         </div>
         <div class="history-list" id="historyList"></div>
       </aside>
@@ -723,7 +763,6 @@
         refresh: document.getElementById("refreshBtn"),
         menu: document.getElementById("menuBtn"),
         statTot: document.getElementById("statTot"),
-        statTotCard: document.getElementById("statTotCard"),
         statPriority: document.getElementById("statPriority"),
         statPriorityCard: document.getElementById("statPriorityCard"),
         statTodo: document.getElementById("statTodo") || { textContent: "" },
@@ -736,8 +775,11 @@
         toast: document.getElementById("toast"),
         historyPanel: document.getElementById("historyPanel"),
         historyClose: document.getElementById("historyCloseBtn"),
+        historySub: document.getElementById("historySub"),
         historyDate: document.getElementById("historyDate"),
         historyToday: document.getElementById("historyTodayBtn"),
+        historyPrev: document.getElementById("historyPrevBtn"),
+        historyNext: document.getElementById("historyNextBtn"),
         historyList: document.getElementById("historyList"),
         historyTot: document.getElementById("historyTot"),
         historyVern: document.getElementById("historyVern"),
@@ -986,10 +1028,9 @@
         els.statPriority.textContent = ordered.filter(isPriority).length;
         els.statTodo.textContent = baseFiltered.filter(i => !isComplete(i)).length;
         els.statDone.textContent = baseFiltered.filter(isComplete).length;
-        els.statTotCard.classList.toggle("active", activeSection === "todo" && !priorityOnly);
         els.statPriorityCard.classList.toggle("active", priorityOnly);
         els.statDoneCard.classList.toggle("active", activeSection === "done");
-        els.sectionTabs.forEach(t => t.classList.toggle("active", !priorityOnly && t.dataset.section === activeSection));
+        els.sectionTabs.forEach(t => t.classList.toggle("active", t.dataset.section === activeSection));
         els.processedTools.classList.toggle("show", activeSection === "done" && !q);
         els.workTabsWrap.classList.toggle("hide", activeSection === "done" || !!q);
         els.scopeLine.classList.toggle("show", true);
@@ -1080,31 +1121,45 @@
         els.historyTot.textContent = rows.length;
         els.historyVern.textContent = vern;
         els.historyPre.textContent = pre;
+        try {
+          const d = new Date(dateValue + "T00:00:00");
+          const isToday = formatDateInput(d) === formatDateInput(new Date());
+          const label = d.toLocaleDateString("it-IT", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+          els.historySub.textContent = (isToday ? "Oggi · " : "") + label;
+        } catch (e) { els.historySub.textContent = ""; }
         if (!rows.length) {
-          els.historyList.innerHTML = `<div class="history-empty">Nessuna unita lavorata in questa data.</div>`;
+          els.historyList.innerHTML = `<div class="history-empty">📭<br />Nessuna unità lavorata in questa data.</div>`;
           return;
         }
+        const brush = `<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h9v4H3z"></path><path d="M12 10h3v2h-3"></path><path d="M6 13l-1 5h3l.7-5"></path><path d="M17 8l2.2-1"></path><path d="M17 11h2.4"></path><path d="M17 14l2.2 1"></path></svg>`;
+        const truck = `<svg viewBox="0 0 24 24"><path d="M3 7h11v10H3z"></path><path d="M14 10h4l3 3v4h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>`;
         els.historyList.innerHTML = rows.map(it => {
           const priority = isPriority(it);
           const state = getState(it);
           const telaio = String(it.telaio || "").trim();
           const van = String(it.van || "").trim();
           const ident = telaio && telaio !== "0" ? telaio : (van || "-");
-          const ops = [];
-          if (sameDate(it.verniciato_at, dateValue)) ops.push("Vern. " + formatTime(it.verniciato_at));
-          if (sameDate(it.preshipment_at, dateValue)) ops.push("Pre-ship. " + formatTime(it.preshipment_at));
+          const vWhen = sameDate(it.verniciato_at, dateValue)
+            ? `<span class="hist-op">${brush}Verniciato · ${escapeHtml(formatTime(it.verniciato_at))}${it.verniciato_by ? " · " + escapeHtml(it.verniciato_by) : ""}</span>` : "";
+          const pWhen = sameDate(it.preshipment_at, dateValue)
+            ? `<span class="hist-op pre">${truck}Pre-shipment · ${escapeHtml(formatTime(it.preshipment_at))}${it.preshipment_by ? " · " + escapeHtml(it.preshipment_by) : ""}</span>` : "";
           return `
-            <div class="history-item ${priority ? "priority" : ""}">
-              <div class="history-id">
-                <span>${escapeHtml(ident)}</span>
-                <span>${escapeHtml(it.pline || "-")}</span>
+            <div class="hist-card ${priority ? "priority" : ""}">
+              <div class="hist-top">
+                <span class="hist-pline">${escapeHtml(it.pline || "-")}</span>
+                <span class="hist-ident">${escapeHtml(ident)}</span>
+                ${priority ? `<span class="hist-badge">TOP</span>` : ""}
               </div>
-              <div class="history-meta">
-                ${escapeHtml(state || "STATO N/D")}<br />
-                ${escapeHtml(ops.join(" | "))}
-              </div>
+              ${state ? `<div class="hist-state">${escapeHtml(state)}</div>` : ""}
+              <div class="hist-ops">${vWhen}${pWhen}</div>
             </div>`;
         }).join("");
+      }
+      function shiftHistoryDay(delta) {
+        const base = els.historyDate.value ? new Date(els.historyDate.value + "T00:00:00") : new Date();
+        base.setDate(base.getDate() + delta);
+        els.historyDate.value = formatDateInput(base);
+        renderHistory();
       }
 
       function openHistoryPanel() {
@@ -1253,8 +1308,12 @@
         });
       }
       els.sectionTabs.forEach(tab => tab.addEventListener("click", () => setView(tab.dataset.section, false)));
-      bindStatCard(els.statTotCard, () => setView("todo", false));
-      bindStatCard(els.statPriorityCard, () => setView("todo", true));
+      bindStatCard(els.statPriorityCard, () => {
+        if (activeSection === "done") activeSection = "deliberato";
+        priorityOnly = !priorityOnly;
+        syncPriorityBtn();
+        renderList();
+      });
       bindStatCard(els.statDoneCard, () => setView(activeSection === "done" ? "deliberato" : "done", false));
       els.workTabs.forEach(tab => tab.addEventListener("click", () => {
         activeWork = tab.dataset.work || "all";
@@ -1275,6 +1334,8 @@
         els.historyDate.value = formatDateInput(new Date());
         renderHistory();
       });
+      els.historyPrev.addEventListener("click", () => shiftHistoryDay(-1));
+      els.historyNext.addEventListener("click", () => shiftHistoryDay(1));
       document.getElementById("opName").addEventListener("click", () => {
         const newName = prompt("Cambia operatore:", opName);
         if (newName && newName.trim()) {
