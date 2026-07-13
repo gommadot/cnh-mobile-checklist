@@ -83,6 +83,7 @@
       .unit.done .u-pl{background:var(--green)}
       .u-id{font-family:ui-monospace,"Cascadia Mono",Menlo,monospace;font-size:clamp(14px,4.2vw,17px);font-weight:950;
         color:var(--ink);flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.05}
+      .u-model{font-size:.56em;font-weight:700;color:var(--grey);white-space:nowrap}
       .u-star{width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#CBD5E1;
         cursor:pointer;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:14px}
       .u-star.on{background:var(--amber-bg);border-color:#FCD34D;color:#D97706}
@@ -257,6 +258,7 @@
         accessName: $("accessName"), accessAll: $("accessAll"), accessSave: $("accessSave"), accessList: $("accessList"),
       };
       let items = [];
+      let techModels = {};
       let filter = "all";
       let accessRows = [];
 
@@ -340,13 +342,14 @@
         if(!rows.length){els.list.innerHTML='<div class="empty">Nessuna unità per questo filtro.</div>';return;}
         els.list.innerHTML=rows.map(it=>{
           const kind=statusKind(it), prio=isPriority(it), st=getState(it), sk=stateKey(it);
+          const model=techModels[String(it.tipo_tecnico||"")]||"";
           const stTag='<span class="tag st '+(kind==="pre"?"pre":kind==="done"?"done":"")+'">'+esc(statusLabel(it))+"</span>";
           const stateTag=st?('<span class="tag '+(sk?"stato-"+sk:"")+'">'+esc(st)+"</span>"):"";
           const vWhen=it.verniciato_at?('<span class="tag when"><i class="fa-solid fa-paintbrush"></i> '+esc(ftime(it.verniciato_at))+"</span>"):"";
           const pWhen=it.preshipment_at?('<span class="tag when"><i class="fa-solid fa-truck"></i> '+esc(ftime(it.preshipment_at))+"</span>"):"";
           const canAssign=!isComplete(it);
           return '<div class="unit '+(prio&&!isComplete(it)?"prio":kind)+'" data-id="'+it.id+'">'+
-            '<div class="u-top"><span class="u-pl">'+esc(pl(it))+'</span><span class="u-id">'+esc(ident(it))+'</span>'+
+            '<div class="u-top"><span class="u-pl">'+esc(pl(it))+'</span><span class="u-id">'+esc(ident(it))+(model?'<span class="u-model"> · '+esc(model)+'</span>':"")+'</span>'+
               '<button class="u-star '+(prio?"on":"")+'" data-act="star" type="button" aria-label="Priorità">&#9733;</button></div>'+
             '<div class="u-meta">'+stTag+stateTag+(prio?'<span class="tag top">TOP</span>':"")+vWhen+pWhen+'</div>'+
             '<div class="u-act">'+
@@ -499,6 +502,8 @@
       els.refresh.addEventListener("click",load);
       function schedule(){clearTimeout(schedule._t);schedule._t=setTimeout(load,350)}
       try{sb.channel("mgr-jobs").on("postgres_changes",{event:"*",schema:"public",table:TABLE},schedule).subscribe();}catch(e){}
+      async function loadTechModels(){try{const r=await fetch("/api/tech-models");if(r.ok)techModels=(await r.json())||{};}catch(e){}}
+      loadTechModels().then(()=>{if(items.length)render()});
       load();
       loadAccess();
       setInterval(load,30000);

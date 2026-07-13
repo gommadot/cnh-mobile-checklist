@@ -263,6 +263,7 @@
         min-width: 0;
       }
       .card.complete .id-value { color: var(--green); }
+      .id-model { font-size: 0.56em; font-weight: 750; color: var(--grey); letter-spacing: 0; white-space: nowrap; }
       .id-secondary {
         font-size: 10px; color: var(--grey); font-weight: 800;
         font-family: ui-monospace, "Cascadia Mono", Menlo, monospace;
@@ -894,6 +895,7 @@
         iosHide: document.getElementById("iosHideBtn"),
       };
       let items = [];
+      let techModels = {};
       let activeSection = "deliberato";
       let activeWork = opRole === "pre" ? "pre" : "paint";
       let priorityOnly = false;
@@ -1174,6 +1176,7 @@
           const useTelaio = !!telaio && telaio !== "0";
           const idLabel = useTelaio ? "TELAIO" : (van ? "VAN" : "");
           const idValue = useTelaio ? telaio : (van || "-");
+          const model = techModels[String(it.tipo_tecnico || "")] || "";
           const stateChip = state
             ? `<span class="state-chip ${stateClass(it)}" title="${escapeHtml(state)}">${escapeHtml(state)}</span>`
             : "";
@@ -1189,7 +1192,7 @@
             <div class="card ${complete ? "complete" : ""} ${priority ? "priority" : ""} ${stateKey(it) === "deliberato" ? "is-deliberato" : stateKey(it) === "fine-linea" ? "is-fine-linea" : ""}" data-id="${it.id}">
               <div class="card-top">
                 <span class="pline">${escapeHtml(it.pline || "-")}</span>
-                <span class="id-value">${escapeHtml(idValue)}</span>
+                <span class="id-value">${escapeHtml(idValue)}${model ? `<span class="id-model"> · ${escapeHtml(model)}</span>` : ""}</span>
                 ${priorityBadge}
                 <span class="card-chevron" aria-hidden="true">&rsaquo;</span>
               </div>
@@ -1276,6 +1279,9 @@
         els.historyPanel.classList.remove("show");
       }
 
+      async function loadTechModels() {
+        try { const r = await fetch("/api/tech-models"); if (r.ok) techModels = (await r.json()) || {}; } catch (e) {}
+      }
       async function loadList() {
         els.refresh.classList.add("spinning");
         try {
@@ -1646,6 +1652,7 @@
       if (_q) els.search.value = _q;
       if (window.Notification && Notification.permission === "granted") setupPush();
       if (!opName || !opRole) { openSetup(); } else { maybeShowIosInstall(); }
+      loadTechModels().then(() => { if (items.length) renderList(); });
       loadList();
       setInterval(loadList, 30000);
       document.addEventListener("visibilitychange", () => {
