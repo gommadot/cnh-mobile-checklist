@@ -842,6 +842,19 @@
       const ROLE_KEY = "cnh-mobile-op-role";
       let opName = localStorage.getItem(OP_KEY) || "";
       let opRole = localStorage.getItem(ROLE_KEY) || ""; // "paint" | "pre" | "all"
+      const DEVICE_KEY = "cnh-device-id";
+      let deviceId = "";
+      try {
+        deviceId = localStorage.getItem(DEVICE_KEY) || "";
+        if (!deviceId) { deviceId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("d-" + Date.now().toString(36) + Math.random().toString(16).slice(2)); localStorage.setItem(DEVICE_KEY, deviceId); }
+      } catch (e) {}
+      function registerDevice() {
+        if (!opName || !deviceId) return;
+        try {
+          fetch("/api/register-device", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceId: deviceId, name: opName, role: opRole || "all", ua: navigator.userAgent }) }).catch(function () {});
+        } catch (e) {}
+      }
       if (opRole && opRole !== "paint" && opRole !== "pre") {
         opRole = "paint";
         localStorage.setItem(ROLE_KEY, opRole);
@@ -1584,6 +1597,7 @@
         await refreshOperatorAccess();
         applyRole();
         ensurePush();
+        registerDevice();
         setupModal.classList.remove("show");
       }
       setupSaveBtn.addEventListener("click", saveSetup);
@@ -1651,6 +1665,7 @@
       const _q = new URLSearchParams(location.search).get("q");
       if (_q) els.search.value = _q;
       if (window.Notification && Notification.permission === "granted") setupPush();
+      registerDevice();
       if (!opName || !opRole) { openSetup(); } else { maybeShowIosInstall(); }
       loadTechModels().then(() => { if (items.length) renderList(); });
       loadList();

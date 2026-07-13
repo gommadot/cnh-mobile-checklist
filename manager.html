@@ -114,15 +114,17 @@
       .access-check{height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 9px;border:1px solid var(--line);border-radius:9px;font-size:11px;font-weight:850;white-space:nowrap}
       .access-check input{width:18px;height:18px;accent-color:var(--red)}
       .access-save{height:38px;border:0;border-radius:9px;background:var(--red);color:#fff;padding:0 13px;font-size:11px;font-weight:900;cursor:pointer}
-      .access-list{display:grid;gap:5px;margin-top:9px}
-      .access-row{display:flex;align-items:center;gap:8px;min-height:34px;padding:5px 7px;border-top:1px solid #F1F5F9}
-      .access-name{flex:1;min-width:0;font-size:12px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      .access-state{font-size:9px;font-weight:900;text-transform:uppercase;color:var(--grey)}
-      .access-row.on .access-state{color:var(--green)}
-      .access-toggle{width:38px;height:22px;border:0;border-radius:12px;background:#CBD5E1;padding:2px;cursor:pointer}
-      .access-toggle::after{content:"";display:block;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.15s}
+      .access-list{display:grid;gap:6px;margin-top:9px;max-height:48vh;overflow:auto}
+      .access-row{display:flex;align-items:center;gap:8px;min-height:40px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:#F8FAFC}
+      .access-main{flex:1;min-width:0}
+      .access-name{font-size:12.5px;font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+      .ab-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+      .ab{font-size:8.5px;font-weight:850;letter-spacing:.2px;padding:2px 6px;border-radius:6px;background:#EEF2F7;color:var(--grey);white-space:nowrap}
+      .ab.push{background:#FFE4E6;color:var(--red)} .ab.act{background:var(--green-bg);color:var(--green)} .ab.dev{background:var(--blue-bg);color:var(--blue)}
+      .access-toggle{width:40px;height:23px;border:0;border-radius:12px;background:#CBD5E1;padding:2px;cursor:pointer;flex-shrink:0}
+      .access-toggle::after{content:"";display:block;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.15s}
       .access-row.on .access-toggle{background:var(--green)}
-      .access-row.on .access-toggle::after{transform:translateX(16px)}
+      .access-row.on .access-toggle::after{transform:translateX(17px)}
       .access-empty{padding:8px 3px 2px;color:var(--grey);font-size:11px}
 
       /* Modale assegna */
@@ -166,6 +168,7 @@
           <h1>Admin Verniciatura</h1>
           <div class="sub" id="updated">—</div>
         </div>
+        <button class="icon-btn" id="optBtn" type="button" aria-label="Opzioni operatori">&#9881;</button>
         <button class="icon-btn" id="refreshBtn" type="button" aria-label="Aggiorna">&#8635;</button>
       </header>
 
@@ -204,17 +207,6 @@
           <button class="chip" data-f="oggi" type="button"><span>Fatte oggi</span><b id="cOggi">0</b></button>
         </div>
       </section>
-      <section>
-        <div class="sec-title">Accesso operatori</div>
-        <div class="access-box">
-          <div class="access-form">
-            <input id="accessName" type="text" placeholder="Nome / ID operatore" autocomplete="off" />
-            <label class="access-check"><input id="accessAll" type="checkbox" /> Vede Tutto</label>
-            <button class="access-save" id="accessSave" type="button">SALVA</button>
-          </div>
-          <div class="access-list" id="accessList"><div class="access-empty">Caricamento utenti...</div></div>
-        </div>
-      </section>
       <main id="list"></main>
     </div>
 
@@ -235,6 +227,22 @@
         <div class="sheet-actions">
           <button class="btn cancel" id="asgCancel" type="button">Annulla</button>
           <button class="btn send" id="asgSend" type="button">Invia sollecito</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="backdrop" id="optSheet">
+      <div class="sheet" role="dialog" aria-modal="true">
+        <h3>Operatori</h3>
+        <div class="who">Registrati, attivi e con notifiche · assegna il tab "Tutto"</div>
+        <div class="access-form">
+          <input id="accessName" type="text" placeholder="Nome / ID operatore" autocomplete="off" />
+          <label class="access-check"><input id="accessAll" type="checkbox" /> Vede Tutto</label>
+          <button class="access-save" id="accessSave" type="button">SALVA</button>
+        </div>
+        <div class="access-list" id="accessList"><div class="access-empty">Caricamento…</div></div>
+        <div class="sheet-actions" style="grid-template-columns:1fr;margin-top:12px">
+          <button class="btn cancel" id="optClose" type="button">Chiudi</button>
         </div>
       </div>
     </div>
@@ -455,17 +463,22 @@
         clearTimeout(toast._t);toast._t=setTimeout(()=>els.toast.classList.remove("show"),2400)}
 
       function renderAccess(){
-        if(!accessRows.length){els.accessList.innerHTML='<div class="access-empty">Nessun operatore registrato.</div>';return;}
-        els.accessList.innerHTML=accessRows.map(row=>'<div class="access-row '+(row.can_view_all?'on':'')+'">'+
-          '<span class="access-name">'+esc(row.operator_name)+'</span><span class="access-state">'+(row.can_view_all?'Tutto abilitato':'Solo reparti')+'</span>'+
-          '<button class="access-toggle" data-access-name="'+esc(row.operator_name)+'" data-access-value="'+(row.can_view_all?'1':'0')+'" type="button" aria-label="Cambia accesso Tutto"></button></div>').join("");
+        if(!accessRows.length){els.accessList.innerHTML='<div class="access-empty">Nessun operatore.</div>';return;}
+        els.accessList.innerHTML=accessRows.map(row=>{
+          const active=row.last_seen&&(Date.now()-new Date(row.last_seen).getTime()<7*86400000);
+          const rl=row.role==="pre"?"Pre-ship":row.role==="paint"?"Verniciatura":"";
+          const badges=[row.has_push?'<span class="ab push">&#128276; notifiche</span>':'',active?'<span class="ab act">attivo</span>':'',row.devices?('<span class="ab dev">'+row.devices+' disp.</span>'):'',rl?('<span class="ab">'+esc(rl)+'</span>'):''].join('');
+          return '<div class="access-row '+(row.can_view_all?'on':'')+'">'+
+            '<div class="access-main"><span class="access-name">'+esc(row.operator_name)+'</span><span class="ab-wrap">'+badges+'</span></div>'+
+            '<button class="access-toggle" data-access-name="'+esc(row.operator_name)+'" data-access-value="'+(row.can_view_all?'1':'0')+'" type="button" aria-label="Vede Tutto"></button></div>';
+        }).join("");
       }
       async function loadAccess(){
         try{
-          const response=await fetch('/api/operator-access',{headers:{'x-push-secret':PUSH_SECRET},cache:'no-store'});
-          const body=await response.json(); if(!response.ok)throw new Error(body.detail||body.error||'Errore');
+          const response=await fetch('/api/operators-overview',{headers:{'x-push-secret':PUSH_SECRET},cache:'no-store'});
+          const body=await response.json(); if(!response.ok)throw new Error(body.error||'Errore');
           accessRows=body.rows||[]; renderAccess();
-        }catch(e){els.accessList.innerHTML='<div class="access-empty">Permessi non disponibili.</div>';}
+        }catch(e){els.accessList.innerHTML='<div class="access-empty">Elenco non disponibile.</div>';}
       }
       async function saveAccess(name,canViewAll){
         name=String(name||'').trim(); if(!name){toast('Inserisci Nome / ID',true);return;}
@@ -480,6 +493,10 @@
       }
       els.accessSave.addEventListener('click',()=>saveAccess(els.accessName.value,els.accessAll.checked));
       els.accessList.addEventListener('click',e=>{const b=e.target.closest('[data-access-name]');if(b)saveAccess(b.dataset.accessName,b.dataset.accessValue!=='1');});
+      const optSheet=$("optSheet");
+      $("optBtn").addEventListener("click",()=>{optSheet.classList.add("show");loadAccess();});
+      $("optClose").addEventListener("click",()=>optSheet.classList.remove("show"));
+      optSheet.addEventListener("click",e=>{if(e.target===optSheet)optSheet.classList.remove("show")});
 
       // ---- load + realtime ---------------------------------------------------
       function fillPlines(){
@@ -505,7 +522,6 @@
       async function loadTechModels(){try{const r=await fetch("/api/tech-models");if(r.ok)techModels=(await r.json())||{};}catch(e){}}
       loadTechModels().then(()=>{if(items.length)render()});
       load();
-      loadAccess();
       setInterval(load,30000);
       document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
     </script>
