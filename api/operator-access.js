@@ -51,10 +51,17 @@ module.exports = async function handler(req, res) {
     if (req.method === "GET" && !req.headers["x-push-secret"]) {
       const key = operatorKey(req.query.name);
       if (!key) return json(res, 200, { canViewAll: false });
-      const rows = await supabase(
-        "operator_mobile_access?select=can_view_all&operator_key=eq." + encodeURIComponent(key) + "&limit=1"
-      );
-      return json(res, 200, { canViewAll: rows?.[0]?.can_view_all === true });
+      try {
+        const rows = await supabase(
+          "operator_mobile_access?select=can_view_all&operator_key=eq." + encodeURIComponent(key) + "&limit=1"
+        );
+        return json(res, 200, { canViewAll: rows?.[0]?.can_view_all === true });
+      } catch (error) {
+        if (error.message.includes("PGRST205")) {
+          return json(res, 200, { canViewAll: false, configured: false });
+        }
+        throw error;
+      }
     }
 
     const secret = req.headers["x-push-secret"] || "";
