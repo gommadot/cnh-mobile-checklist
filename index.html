@@ -137,6 +137,7 @@
         color: var(--ink-soft); min-height: 42px; font-size: clamp(12px, 3vw, 13px); font-weight: 850;
         display: inline-flex; align-items: center; justify-content: center; gap: 7px;
       }
+      .work-tab[hidden] { display: none !important; }
       .work-tab svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2.2; fill: none; }
       .work-tab i.fa-solid { font-size: 15px; line-height: 1; }
       .check-ico { align-items: center; justify-content: center; }
@@ -582,7 +583,7 @@
         font-size: 16px; font-weight: 700; color: var(--ink); background: var(--white); -webkit-appearance: none;
       }
       .setup-input:focus { outline: 2px solid rgba(192,0,0,.3); border-color: var(--red); }
-      .setup-roles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+      .setup-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
       .setup-role {
         display: flex; flex-direction: column; align-items: center; gap: 6px;
         padding: 12px 6px; border: 1.5px solid var(--grey-line); border-radius: 12px;
@@ -663,7 +664,7 @@
         </select>
       </div>
       <div class="work-tabs" id="workTabs" role="tablist" aria-label="Lavorazione richiesta">
-        <button class="work-tab active" data-work="all" type="button">
+        <button class="work-tab" data-work="all" type="button" hidden>
           <i class="fa-solid fa-list-check" aria-hidden="true"></i>
           <span>Tutto</span>
         </button>
@@ -819,7 +820,6 @@
           <div class="setup-roles" id="setupRoles">
             <button class="setup-role" data-role="paint" type="button"><i class="fa-solid fa-paintbrush"></i><span>Verniciatura</span></button>
             <button class="setup-role" data-role="pre" type="button"><i class="fa-solid fa-truck"></i><span>Pre-shipment</span></button>
-            <button class="setup-role" data-role="all" type="button"><i class="fa-solid fa-list-check"></i><span>Tutto</span></button>
           </div>
         </div>
         <div class="setup-actions">
@@ -841,6 +841,11 @@
       const ROLE_KEY = "cnh-mobile-op-role";
       let opName = localStorage.getItem(OP_KEY) || "";
       let opRole = localStorage.getItem(ROLE_KEY) || ""; // "paint" | "pre" | "all"
+      if (opRole && opRole !== "paint" && opRole !== "pre") {
+        opRole = "paint";
+        localStorage.setItem(ROLE_KEY, opRole);
+      }
+      let canViewAll = false;
 
       const els = {
         list: document.getElementById("list"),
@@ -890,7 +895,7 @@
       };
       let items = [];
       let activeSection = "deliberato";
-      let activeWork = opRole === "paint" ? "paint" : opRole === "pre" ? "pre" : "all";
+      let activeWork = opRole === "pre" ? "pre" : "paint";
       let priorityOnly = false;
 
       function showToast(message, isError) {
@@ -1274,7 +1279,8 @@
       async function loadList() {
         els.refresh.classList.add("spinning");
         try {
-          const { data, error } = await sb.from(TABLE).select("*");
+          const [, result] = await Promise.all([refreshOperatorAccess(), sb.from(TABLE).select("*")]);
+          const { data, error } = result;
           if (error) throw error;
           items = sortItems(data || []);
           renderList();
@@ -1517,7 +1523,9 @@
       });
       bindStatCard(els.statDoneCard, () => setView(activeSection === "done" ? "deliberato" : "done", false));
       els.workTabs.forEach(tab => tab.addEventListener("click", () => {
-        activeWork = tab.dataset.work || "all";
+        const requested = tab.dataset.work || "paint";
+        if (requested === "all" && !canViewAll) return;
+        activeWork = requested;
         els.workTabs.forEach(t => t.classList.toggle("active", t === tab));
         renderList();
       }));
@@ -1542,12 +1550,12 @@
       const setupName = document.getElementById("setupName");
       const setupRoles = document.getElementById("setupRoles");
       const setupSaveBtn = document.getElementById("setupSaveBtn");
-      let setupRole = "all";
+      let setupRole = "paint";
       function roleLabel(role) {
-        return role === "paint" ? "Verniciatura" : role === "pre" ? "Pre-shipment" : "Tutto";
+        return role === "pre" ? "Pre-shipment" : "Verniciatura";
       }
       function selectSetupRole(role) {
-        setupRole = role || "all";
+        setupRole = role === "pre" ? "pre" : "paint";
         Array.from(setupRoles.querySelectorAll(".setup-role"))
           .forEach(b => b.classList.toggle("sel", b.dataset.role === setupRole));
       }
@@ -1557,16 +1565,17 @@
       });
       function openSetup() {
         setupName.value = opName || "";
-        selectSetupRole(opRole || "all");
+        selectSetupRole(opRole);
         setupModal.classList.add("show");
         setTimeout(() => setupName.focus(), 60);
       }
-      function saveSetup() {
+      async function saveSetup() {
         opName = (setupName.value || "").trim() || "operatore";
-        opRole = setupRole || "all";
+        opRole = setupRole === "pre" ? "pre" : "paint";
         localStorage.setItem(OP_KEY, opName);
         localStorage.setItem(ROLE_KEY, opRole);
         updateOpDisplay();
+        await refreshOperatorAccess();
         applyRole();
         ensurePush();
         setupModal.classList.remove("show");
@@ -1585,9 +1594,31 @@
         document.getElementById("opRole").textContent = roleLabel(opRole);
       }
       function applyRole() {
-        activeWork = opRole === "paint" ? "paint" : opRole === "pre" ? "pre" : "all";
+        if (activeWork === "all" && canViewAll) {
+          renderList();
+          return;
+        }
+        activeWork = opRole === "pre" ? "pre" : "paint";
         els.workTabs.forEach(t => t.classList.toggle("active", t.dataset.work === activeWork));
         renderList();
+      }
+      async function refreshOperatorAccess() {
+        canViewAll = false;
+        if (opName) {
+          try {
+            const response = await fetch("/api/operator-access?name=" + encodeURIComponent(opName), { cache: "no-store" });
+            if (response.ok) {
+              const access = await response.json();
+              canViewAll = access.canViewAll === true;
+            }
+          } catch (error) {
+            console.warn("Permessi operatore non disponibili:", error);
+          }
+        }
+        const allTab = els.workTabs.find(tab => tab.dataset.work === "all");
+        if (allTab) allTab.hidden = !canViewAll;
+        if (!canViewAll && activeWork === "all") activeWork = opRole === "pre" ? "pre" : "paint";
+        els.workTabs.forEach(tab => tab.classList.toggle("active", tab.dataset.work === activeWork));
       }
       function maybeShowIosInstall() {
         const ua = navigator.userAgent || "";
@@ -1610,7 +1641,7 @@
       updateOpDisplay();
       updateNotifBadge();
       renderNotifs();
-      els.workTabs.forEach(t => t.classList.toggle("active", t.dataset.work === activeWork));
+      refreshOperatorAccess().then(() => applyRole());
       const _q = new URLSearchParams(location.search).get("q");
       if (_q) els.search.value = _q;
       if (window.Notification && Notification.permission === "granted") setupPush();
