@@ -47,6 +47,34 @@
         white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .kpi.vern .n{color:var(--red)} .kpi.pre .n{color:var(--blue)}
       .kpi.oggi .n{color:var(--green)} .kpi.prio .n{color:var(--amber)}
+      .kpi.rem .n{color:var(--ink)}
+      .kpi.doneV .n{color:var(--red)} .kpi.doneP .n{color:var(--blue)} .kpi.doneT .n{color:var(--green)}
+      .kpi .sub{font-size:8px;font-weight:850;color:#94A3B8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .kpis.k3{grid-template-columns:repeat(3,1fr);margin-top:7px}
+
+      /* Grafici (Chart.js) */
+      .chart-card{background:#fff;border:1px solid #E7EDF4;border-radius:12px;padding:10px;margin-top:9px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+      .chart-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
+      .chart-head>span:first-child{font-size:11px;font-weight:900;letter-spacing:.3px;color:var(--ink2)}
+      .chart-sub{font-size:10px;font-weight:800;color:var(--grey);white-space:nowrap}
+      .donut-wrap{position:relative;height:152px}
+      .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+      .donut-center b{font-size:27px;font-weight:950;line-height:1;color:var(--ink)}
+      .donut-center span{font-size:8.5px;font-weight:850;letter-spacing:.5px;text-transform:uppercase;color:var(--grey);margin-top:3px}
+      .legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:9px}
+      .legend .lg{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:850;color:var(--ink2)}
+      .legend .dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+      .trend-wrap{position:relative;height:172px}
+
+      /* Selettore periodo */
+      .period-bar{display:flex;gap:6px;overflow-x:auto;padding:1px 2px 7px;-webkit-overflow-scrolling:touch}
+      .period-bar .per{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;
+        font-size:12px;font-weight:850;color:var(--ink2);cursor:pointer;white-space:nowrap}
+      .period-bar .per.active{background:var(--red);border-color:var(--red);color:#fff}
+      .period-custom{display:flex;align-items:center;gap:6px;margin:0 0 8px;flex-wrap:wrap}
+      .period-custom input[type=date]{height:34px;border:1px solid var(--line);border-radius:9px;padding:0 8px;font-size:12px;font-weight:750;color:var(--ink);background:#fff}
+      .period-custom>span{color:var(--grey);font-weight:900}
+      .per-apply{height:34px;border:0;border-radius:9px;background:var(--ink);color:#fff;padding:0 14px;font-size:12px;font-weight:850;cursor:pointer}
 
       /* Per linea */
       .lines-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.05)}
@@ -178,12 +206,43 @@
       </div>
 
       <section>
-        <div class="sec-title">Situazione</div>
+        <div class="sec-title">Da fare ora · tempo reale</div>
         <div class="kpis">
           <div class="kpi vern"><div class="n" id="kVern">0</div><div class="l">Da vern.</div></div>
-          <div class="kpi pre"><div class="n" id="kPre">0</div><div class="l">Da pre-ship</div></div>
-          <div class="kpi oggi"><div class="n" id="kOggi">0</div><div class="l">Fatte oggi</div></div>
+          <div class="kpi pre"><div class="n" id="kPre">0</div><div class="l">Da pre.</div></div>
           <div class="kpi prio"><div class="n" id="kPrio">0</div><div class="l">Priorità</div></div>
+          <div class="kpi rem"><div class="n" id="kRem">0</div><div class="l">Rimasto</div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head"><span>Ripartizione da fare</span><span class="chart-sub" id="donutSub">—</span></div>
+          <div class="donut-wrap"><canvas id="chartDonut"></canvas><div class="donut-center"><b id="donutCenterN">0</b><span>rimasti</span></div></div>
+          <div class="legend" id="donutLegend"></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-title">Fatte nel periodo</div>
+        <div class="period-bar" id="periodBar">
+          <button class="per active" data-p="today" type="button">Oggi</button>
+          <button class="per" data-p="yesterday" type="button">Ieri</button>
+          <button class="per" data-p="7d" type="button">7 giorni</button>
+          <button class="per" data-p="30d" type="button">30 giorni</button>
+          <button class="per" data-p="custom" type="button">Date…</button>
+        </div>
+        <div class="period-custom" id="periodCustom" hidden>
+          <input type="date" id="pFrom" aria-label="Data inizio" />
+          <span>&rarr;</span>
+          <input type="date" id="pTo" aria-label="Data fine" />
+          <button class="per-apply" id="pApply" type="button">Applica</button>
+        </div>
+        <div class="kpis k3">
+          <div class="kpi doneV"><div class="n" id="kDoneV">0</div><div class="l">Verniciate</div><div class="sub" id="kDoneVp">0 prio</div></div>
+          <div class="kpi doneP"><div class="n" id="kDoneP">0</div><div class="l">Pre-shipment</div><div class="sub" id="kDonePp">0 prio</div></div>
+          <div class="kpi doneT"><div class="n" id="kDoneT">0</div><div class="l">Operazioni</div><div class="sub" id="periodLbl">oggi</div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-head"><span>Completamenti per giorno</span><span class="chart-sub" id="trendLbl">—</span></div>
+          <div class="trend-wrap"><canvas id="chartTrend"></canvas></div>
         </div>
       </section>
 
@@ -191,7 +250,7 @@
         <div class="sec-title">Per linea</div>
         <div class="lines-wrap">
           <table class="lines">
-            <thead><tr><th>Linea</th><th>Da vern.</th><th>Pre-ship</th><th>Oggi</th><th>Prio</th></tr></thead>
+            <thead><tr><th>Linea</th><th>Da vern.</th><th>Pre-ship</th><th>Fatte</th><th>Prio</th></tr></thead>
             <tbody id="linesBody"></tbody>
           </table>
         </div>
@@ -204,7 +263,7 @@
           <button class="chip" data-f="vern" type="button"><span>Da verniciare</span><b id="cVern">0</b></button>
           <button class="chip" data-f="pre" type="button"><span>Pre-shipment</span><b id="cPre">0</b></button>
           <button class="chip" data-f="prio" type="button"><span>Priorità</span><b id="cPrio">0</b></button>
-          <button class="chip" data-f="oggi" type="button"><span>Fatte oggi</span><b id="cOggi">0</b></button>
+          <button class="chip" data-f="oggi" type="button"><span>Fatte</span><b id="cOggi">0</b></button>
         </div>
       </section>
       <main id="list"></main>
@@ -250,6 +309,7 @@
     <div class="toast" id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
       const SUPABASE_URL = "https://hvzhoggvicevcoenicnf.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2emhvZ2d2aWNldmNvZW5pY25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4Nzg5MjIsImV4cCI6MjA5NTQ1NDkyMn0.--C94gsSg9RG7YN4ftTY0z-gdXNON7gqJWrqkY-5Jt4";
@@ -261,7 +321,8 @@
       const els = {
         search: $("search"), pline: $("plineFilter"), list: $("list"), updated: $("updated"),
         refresh: $("refreshBtn"), linesBody: $("linesBody"), toast: $("toast"),
-        kVern: $("kVern"), kPre: $("kPre"), kOggi: $("kOggi"), kPrio: $("kPrio"),
+        kVern: $("kVern"), kPre: $("kPre"), kPrio: $("kPrio"), kRem: $("kRem"),
+        kDoneV: $("kDoneV"), kDoneVp: $("kDoneVp"), kDoneP: $("kDoneP"), kDonePp: $("kDonePp"), kDoneT: $("kDoneT"), periodLbl: $("periodLbl"),
         cAll: $("cAll"), cVern: $("cVern"), cPre: $("cPre"), cPrio: $("cPrio"), cOggi: $("cOggi"),
         accessName: $("accessName"), accessAll: $("accessAll"), accessSave: $("accessSave"), accessList: $("accessList"),
       };
@@ -269,6 +330,8 @@
       let techModels = {};
       let filter = "all";
       let accessRows = [];
+      let period = { mode: "today", from: null, to: null };
+      let donutChart = null, trendChart = null;
 
       // ---- helpers -----------------------------------------------------------
       function norm(v){return String(v||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")}
@@ -285,10 +348,34 @@
       function pendingRole(it){return needsPaint(it)?"paint":needsPre(it)?"pre":null}
       function statusKind(it){if(isComplete(it))return "done";if(needsPaint(it))return "vern";if(needsPre(it))return "pre";return "done"}
       function statusLabel(it){const k=statusKind(it);return k==="vern"?"Da verniciare":k==="pre"?"Da fare pre-shipment":"Processata"}
-      function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-      function sameDay(iso,day){if(!iso)return false;try{const d=new Date(iso);return (d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))===day}catch(e){return false}}
-      function doneToday(it){const t=todayStr();return sameDay(it.verniciato_at,t)||sameDay(it.preshipment_at,t)}
-      function opsToday(it){const t=todayStr();return (sameDay(it.verniciato_at,t)?1:0)+(sameDay(it.preshipment_at,t)?1:0)}
+      function startOfDay(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+      function periodBounds(){
+        const now=new Date(); const sod=startOfDay(now); let from,to;
+        if(period.mode==="yesterday"){to=new Date(sod);from=new Date(sod);from.setDate(from.getDate()-1)}
+        else if(period.mode==="7d"){to=new Date(sod);to.setDate(to.getDate()+1);from=new Date(to);from.setDate(from.getDate()-7)}
+        else if(period.mode==="30d"){to=new Date(sod);to.setDate(to.getDate()+1);from=new Date(to);from.setDate(from.getDate()-30)}
+        else if(period.mode==="custom"){from=period.from?new Date(period.from+"T00:00:00"):sod;let e=period.to?new Date(period.to+"T00:00:00"):(period.from?new Date(period.from+"T00:00:00"):sod);to=new Date(e);to.setDate(to.getDate()+1)}
+        else{from=sod;to=new Date(sod);to.setDate(to.getDate()+1)}
+        return {from,to};
+      }
+      function inPeriod(iso){if(!iso)return false;try{const t=new Date(iso).getTime();const b=periodBounds();return t>=b.from.getTime()&&t<b.to.getTime()}catch(e){return false}}
+      function doneInPeriod(it){return inPeriod(it.verniciato_at)||inPeriod(it.preshipment_at)}
+      function opsInPeriod(it){return (inPeriod(it.verniciato_at)?1:0)+(inPeriod(it.preshipment_at)?1:0)}
+      function fmtD(s){const d=(s instanceof Date)?s:new Date(s+"T00:00:00");return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")}
+      function periodLabel(){
+        const m=period.mode;
+        if(m==="yesterday")return "ieri";
+        if(m==="7d")return "ultimi 7 giorni";
+        if(m==="30d")return "ultimi 30 giorni";
+        if(m==="custom"){const f=period.from||period.to,t=period.to||period.from;return f===t?fmtD(f):(fmtD(f)+"–"+fmtD(t))}
+        return "oggi";
+      }
+      function periodDays(){
+        const b=periodBounds();const days=[];let cur=new Date(b.from);let guard=0;
+        while(cur.getTime()<b.to.getTime()&&guard<120){const next=new Date(cur);next.setDate(next.getDate()+1);
+          days.push({label:fmtD(cur),s:cur.getTime(),e:next.getTime()});cur=next;guard++;}
+        return days;
+      }
       function ftime(iso){if(!iso)return "";try{const d=new Date(iso);const today=d.toDateString()===new Date().toDateString();const hm=d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});return today?("oggi "+hm):(d.toLocaleDateString("it-IT",{day:"2-digit",month:"2-digit"})+" "+hm)}catch(e){return ""}}
 
       // ---- render ------------------------------------------------------------
@@ -302,17 +389,28 @@
           return hay.includes(q)||nm;
         });
       }
-      function render(){
-        const set=baseSet();
-        // KPI totali (su tutto l'impianto, non filtrati)
+      function render(){ renderDashboard(); renderList(); }
+
+      function renderDashboard(){
         const all=items;
-        els.kVern.textContent=all.filter(needsPaint).length;
-        els.kPre.textContent=all.filter(needsPre).length;
-        els.kOggi.textContent=all.reduce((a,it)=>a+opsToday(it),0);
+        const nPaint=all.filter(needsPaint).length;
+        const nPre=all.filter(needsPre).length;
+        els.kVern.textContent=nPaint;
+        els.kPre.textContent=nPre;
         els.kPrio.textContent=all.filter(it=>isPriority(it)&&!isComplete(it)).length;
-        // per linea
+        els.kRem.textContent=nPaint+nPre;
+        // periodo
+        const doneV=all.filter(it=>inPeriod(it.verniciato_at));
+        const doneP=all.filter(it=>inPeriod(it.preshipment_at));
+        els.kDoneV.textContent=doneV.length;
+        els.kDoneP.textContent=doneP.length;
+        els.kDoneT.textContent=doneV.length+doneP.length;
+        els.kDoneVp.textContent=doneV.filter(isPriority).length+" prio";
+        els.kDonePp.textContent=doneP.filter(isPriority).length+" prio";
+        els.periodLbl.textContent=periodLabel();
+        // per linea (Fatte = operazioni nel periodo)
         const lines={}; all.forEach(it=>{const k=pl(it);(lines[k]=lines[k]||{v:0,p:0,o:0,x:0});
-          if(needsPaint(it))lines[k].v++; if(needsPre(it))lines[k].p++; lines[k].o+=opsToday(it);
+          if(needsPaint(it))lines[k].v++; if(needsPre(it))lines[k].p++; lines[k].o+=opsInPeriod(it);
           if(isPriority(it)&&!isComplete(it))lines[k].x++;});
         const keys=Object.keys(lines).sort();
         const tot={v:0,p:0,o:0,x:0}; keys.forEach(k=>{tot.v+=lines[k].v;tot.p+=lines[k].p;tot.o+=lines[k].o;tot.x+=lines[k].x});
@@ -324,20 +422,60 @@
             "<td>"+(r.o?"<span class='co'>"+r.o+"</span>":"<span class='z'>0</span>")+"</td>"+
             "<td>"+(r.x?"<span class='cx'>"+r.x+"</span>":"<span class='z'>0</span>")+"</td></tr>";
         }).join("") + "<tr class='tot'><td><span class='pl'>TOTALE</span></td><td>"+tot.v+"</td><td>"+tot.p+"</td><td>"+tot.o+"</td><td>"+tot.x+"</td></tr>";
+        updateCharts(all);
+      }
 
-        // chips count (sul set filtrato per linea/ricerca)
+      function updateCharts(all){
+        if(typeof Chart==="undefined")return;
+        const nPaint=all.filter(needsPaint).length, nPre=all.filter(needsPre).length, done=all.filter(isComplete).length;
+        const cn=$("donutCenterN"); if(cn)cn.textContent=nPaint+nPre;
+        const ds=$("donutSub"); if(ds)ds.textContent=done+" completate";
+        try{
+          if(!donutChart){
+            const el=$("chartDonut");
+            if(el)donutChart=new Chart(el.getContext("2d"),{type:"doughnut",
+              data:{labels:["Da verniciare","Da pre-shipment"],datasets:[{data:[nPaint,nPre],backgroundColor:["#C00000","#075985"],borderWidth:2,borderColor:"#fff"}]},
+              options:{cutout:"70%",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+                tooltip:{callbacks:{label:c=>" "+c.label+": "+c.parsed}}}}});
+          } else {donutChart.data.datasets[0].data=[nPaint,nPre];donutChart.update();}
+        }catch(e){}
+        const lg=$("donutLegend"); if(lg)lg.innerHTML=
+          '<span class="lg"><span class="dot" style="background:#C00000"></span>Da verniciare · '+nPaint+'</span>'+
+          '<span class="lg"><span class="dot" style="background:#075985"></span>Da pre-shipment · '+nPre+'</span>';
+        const days=periodDays();
+        const labs=days.map(d=>d.label);
+        const vv=days.map(d=>all.reduce((a,it)=>{const t=it.verniciato_at?new Date(it.verniciato_at).getTime():0;return a+((t>=d.s&&t<d.e)?1:0)},0));
+        const pp=days.map(d=>all.reduce((a,it)=>{const t=it.preshipment_at?new Date(it.preshipment_at).getTime():0;return a+((t>=d.s&&t<d.e)?1:0)},0));
+        const tl=$("trendLbl"); if(tl)tl.textContent=periodLabel();
+        try{
+          if(!trendChart){
+            const el=$("chartTrend");
+            if(el)trendChart=new Chart(el.getContext("2d"),{type:"bar",
+              data:{labels:labs,datasets:[
+                {label:"Verniciate",data:vv,backgroundColor:"#C00000",borderRadius:4,maxBarThickness:28},
+                {label:"Pre-shipment",data:pp,backgroundColor:"#075985",borderRadius:4,maxBarThickness:28}]},
+              options:{responsive:true,maintainAspectRatio:false,
+                plugins:{legend:{position:"top",align:"end",labels:{boxWidth:10,boxHeight:10,font:{size:10},padding:8}}},
+                scales:{x:{grid:{display:false},ticks:{font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:8}},
+                  y:{beginAtZero:true,ticks:{precision:0,font:{size:9}},grid:{color:"#F1F5F9"}}}}});
+          } else {trendChart.data.labels=labs;trendChart.data.datasets[0].data=vv;trendChart.data.datasets[1].data=pp;trendChart.update();}
+        }catch(e){}
+      }
+
+      function renderList(){
+        const set=baseSet();
         els.cAll.textContent=set.length;
         els.cVern.textContent=set.filter(needsPaint).length;
         els.cPre.textContent=set.filter(needsPre).length;
         els.cPrio.textContent=set.filter(it=>isPriority(it)&&!isComplete(it)).length;
-        els.cOggi.textContent=set.filter(doneToday).length;
+        els.cOggi.textContent=set.filter(doneInPeriod).length;
 
         // lista filtrata
         let rows=set.filter(it=>{
           if(filter==="vern")return needsPaint(it);
           if(filter==="pre")return needsPre(it);
           if(filter==="prio")return isPriority(it)&&!isComplete(it);
-          if(filter==="oggi")return doneToday(it);
+          if(filter==="oggi")return doneInPeriod(it);
           return true;
         });
         rows.sort((a,b)=>{
@@ -454,10 +592,26 @@
         const c=e.target.closest(".chip"); if(!c)return;
         filter=c.dataset.f;
         document.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active",x===c));
-        render();
+        renderList();
       });
-      els.search.addEventListener("input",render);
-      els.pline.addEventListener("change",render);
+      els.search.addEventListener("input",renderList);
+      els.pline.addEventListener("change",renderList);
+
+      // ---- selettore periodo -------------------------------------------------
+      document.getElementById("periodBar").addEventListener("click",e=>{
+        const b=e.target.closest(".per"); if(!b)return;
+        document.querySelectorAll("#periodBar .per").forEach(x=>x.classList.toggle("active",x===b));
+        const p=b.dataset.p;
+        const custom=document.getElementById("periodCustom");
+        if(p==="custom"){custom.hidden=false;return;}
+        custom.hidden=true; period={mode:p,from:null,to:null}; render();
+      });
+      document.getElementById("pApply").addEventListener("click",()=>{
+        const f=document.getElementById("pFrom").value, t=document.getElementById("pTo").value;
+        if(!f&&!t){toast("Scegli almeno una data",true);return;}
+        let from=f||t, to=t||f; if(from>to){const tmp=from;from=to;to=tmp;}
+        period={mode:"custom",from,to}; render();
+      });
 
       function toast(msg,err){els.toast.textContent=msg;els.toast.classList.toggle("err",!!err);els.toast.classList.add("show");
         clearTimeout(toast._t);toast._t=setTimeout(()=>els.toast.classList.remove("show"),2400)}
