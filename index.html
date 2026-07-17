@@ -418,6 +418,37 @@
         padding: 20px; animation: fadeIn 150ms ease;
       }
       .modal-backdrop.show { display: flex; }
+      /* Scheda configurazione veicolo (plant order) */
+      .cfg-win {
+        background: var(--white); border-radius: 18px; width: 100%; max-width: 520px; max-height: 88vh;
+        display: flex; flex-direction: column; gap: 10px; padding: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+      }
+      .cfg-head { display: flex; align-items: flex-start; gap: 10px; }
+      .cfg-titles { flex: 1; min-width: 0; }
+      .cfg-title { font-size: 19px; font-weight: 900; color: var(--ink); line-height: 1.1; }
+      .cfg-sub { margin-top: 3px; font-size: 12px; font-weight: 700; color: var(--grey); overflow-wrap: anywhere; }
+      .cfg-sub b { color: var(--ink); font-family: ui-monospace, Menlo, monospace; }
+      .cfg-search {
+        width: 100%; height: 44px; border: 1px solid var(--grey-line); border-radius: 12px; padding: 0 12px;
+        font-size: 15px; background: var(--white); color: var(--ink); -webkit-appearance: none; appearance: none;
+      }
+      .cfg-search:focus { outline: 2px solid rgba(192,0,0,0.25); border-color: var(--red); }
+      .cfg-count { font-size: 10px; font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase; color: var(--grey); }
+      .cfg-list { display: grid; gap: 6px; overflow: auto; -webkit-overflow-scrolling: touch; flex: 1; min-height: 0; }
+      .cfg-row {
+        display: flex; gap: 10px; align-items: flex-start; padding: 10px;
+        border: 1px solid var(--grey-line); border-radius: 10px; background: var(--soft);
+      }
+      .cfg-v {
+        font-family: ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 900; color: var(--red);
+        background: #FFF1F2; border: 1px solid #FFE1E5; border-radius: 7px; padding: 3px 7px;
+        flex-shrink: 0; min-width: 70px; text-align: center;
+      }
+      .cfg-d { font-size: 13.5px; font-weight: 700; color: var(--ink-soft); line-height: 1.35; overflow-wrap: anywhere; padding-top: 2px; }
+      .cfg-row.base { background: #F0FDF4; border-color: #BBF7D0; }
+      .cfg-row.base .cfg-v { color: var(--green); background: var(--green-bg); border-color: #BBF7D0; }
+      .cfg-empty { padding: 18px; text-align: center; color: var(--grey); font-size: 13px; line-height: 1.5; }
+      .cfg-list mark { background: #FEF08A; color: inherit; border-radius: 2px; padding: 0 1px; }
       .side-panel {
         position: fixed; inset: 0; z-index: 90; display: none;
         background: rgba(15, 23, 42, 0.48);
@@ -802,6 +833,21 @@
           <button class="btn btn-cancel" id="confirmCancelBtn" type="button">ANNULLA</button>
           <button class="btn btn-ok" id="confirmOkBtn" type="button">OK</button>
         </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="cfgModal">
+      <div class="cfg-win" role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
+        <div class="cfg-head">
+          <div class="cfg-titles">
+            <div class="cfg-title" id="cfgTitle">Configurazione</div>
+            <div class="cfg-sub"><b id="cfgIdent">—</b> · ordine <b id="cfgOrder">—</b> <span id="cfgModel"></span></div>
+          </div>
+          <button class="panel-close" id="cfgClose" type="button" aria-label="Chiudi">&times;</button>
+        </div>
+        <input type="search" id="cfgSearch" class="cfg-search" placeholder="Cerca variante o descrizione..." autocomplete="off" />
+        <div class="cfg-count" id="cfgCount"></div>
+        <div class="cfg-list" id="cfgList"></div>
       </div>
     </div>
 
@@ -1388,9 +1434,74 @@
       });
 
       // === Click delegation ====================================================
+      // ---- configurazione veicolo (plant order) ------------------------------
+      const cfgModal = document.getElementById("cfgModal");
+      let cfgRows = [];
+      function cfgHighlight(text, q) {
+        const s = String(text == null ? "" : text);
+        if (!q) return escapeHtml(s);
+        const i = s.toLowerCase().indexOf(q.toLowerCase());
+        if (i < 0) return escapeHtml(s);
+        return escapeHtml(s.slice(0, i)) + "<mark>" + escapeHtml(s.slice(i, i + q.length)) + "</mark>" + escapeHtml(s.slice(i + q.length));
+      }
+      function renderCfg() {
+        const raw = document.getElementById("cfgSearch").value.trim();
+        const q = normText(raw);
+        const rows = q ? cfgRows.filter(r => normText(r.v).includes(q) || normText(r.d).includes(q)) : cfgRows;
+        document.getElementById("cfgCount").textContent = q
+          ? `${rows.length} di ${cfgRows.length} varianti`
+          : `${cfgRows.length} varianti`;
+        if (!rows.length) {
+          document.getElementById("cfgList").innerHTML = `<div class="cfg-empty">Nessuna variante trovata per «${escapeHtml(raw)}».</div>`;
+          return;
+        }
+        document.getElementById("cfgList").innerHTML = rows.map(r =>
+          `<div class="cfg-row${r.v === "0" ? " base" : ""}"><span class="cfg-v">${cfgHighlight(r.v, raw)}</span><span class="cfg-d">${cfgHighlight(r.d, raw)}</span></div>`
+        ).join("");
+      }
+      async function openConfig(id) {
+        const it = items.find(i => String(i.id) === String(id));
+        if (!it) return;
+        const order = String(it.plant_order || "").trim();
+        const telaio = String(it.telaio || "").trim();
+        const model = techModels[String(it.tipo_tecnico || "")] || "";
+        document.getElementById("cfgIdent").textContent = (telaio && telaio !== "0") ? telaio : (String(it.van || "").trim() || "—");
+        document.getElementById("cfgOrder").textContent = order || "—";
+        document.getElementById("cfgModel").textContent = model ? `· ${model}` : "";
+        document.getElementById("cfgSearch").value = "";
+        document.getElementById("cfgCount").textContent = "";
+        cfgRows = [];
+        document.getElementById("cfgList").innerHTML = '<div class="cfg-empty">Caricamento…</div>';
+        cfgModal.classList.add("show");
+        if (!order) {
+          document.getElementById("cfgList").innerHTML = '<div class="cfg-empty">Nessun plant order su questa unità.</div>';
+          return;
+        }
+        try {
+          const r = await fetch("/api/vehicle-config?order=" + encodeURIComponent(order), { cache: "no-store" });
+          const b = await r.json();
+          if (!r.ok) throw new Error(b.error || "Errore");
+          cfgRows = b.rows || [];
+          if (!cfgRows.length) {
+            document.getElementById("cfgList").innerHTML = `<div class="cfg-empty">Nessuna configurazione trovata per l'ordine ${escapeHtml(order)}.</div>`;
+            return;
+          }
+          renderCfg();
+        } catch (e) {
+          document.getElementById("cfgList").innerHTML = '<div class="cfg-empty">Configurazione non disponibile.<br>Riprova tra poco.</div>';
+        }
+      }
+      document.getElementById("cfgSearch").addEventListener("input", renderCfg);
+      document.getElementById("cfgClose").addEventListener("click", () => cfgModal.classList.remove("show"));
+      cfgModal.addEventListener("click", (e) => { if (e.target === cfgModal) cfgModal.classList.remove("show"); });
+
       els.list.addEventListener("click", (e) => {
         const check = e.target.closest(".check");
-        if (!check) return;
+        if (!check) {
+          const c = e.target.closest(".card");
+          if (c) openConfig(c.dataset.id); // tap sul corpo card -> configurazione
+          return;
+        }
         const card = check.closest(".card");
         if (!card) return;
         const id = parseInt(card.dataset.id, 10);

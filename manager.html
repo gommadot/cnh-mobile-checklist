@@ -126,6 +126,24 @@
       .tag.stato-fine-linea{background:var(--blue-bg);color:var(--blue);border-color:#BAE6FD}
       .tag.when{background:#fff;color:var(--grey)}
       .tag.top{background:#FFF1F2;color:var(--red);border-color:#FFE1E5}
+      .tag.ord{background:#EEF2FF;color:#3730A3;border-color:#C7D2FE;font-family:ui-monospace,Menlo,monospace}
+      .unit{cursor:pointer}
+      .u-act button{cursor:pointer}
+
+      /* Scheda configurazione veicolo */
+      .cfg-search{width:100%;height:40px;border:1px solid var(--line);border-radius:11px;padding:0 12px;
+        font-size:14px;margin-top:2px;-webkit-appearance:none;appearance:none;background:#fff;color:var(--ink)}
+      .cfg-search:focus{outline:2px solid rgba(192,0,0,.25);border-color:var(--red)}
+      .cfg-count{font-size:9.5px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;color:var(--grey);margin:8px 2px 6px}
+      .cfg-list{display:grid;gap:5px;max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch}
+      .cfg-row{display:flex;gap:9px;align-items:flex-start;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:#F8FAFC}
+      .cfg-v{font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:900;color:var(--red);background:#FFF1F2;
+        border:1px solid #FFE1E5;border-radius:6px;padding:2px 6px;flex-shrink:0;min-width:64px;text-align:center}
+      .cfg-d{font-size:12px;font-weight:700;color:var(--ink2);line-height:1.35;overflow-wrap:anywhere;padding-top:2px}
+      .cfg-row.base{background:#F0FDF4;border-color:#BBF7D0}
+      .cfg-row.base .cfg-v{color:var(--green);background:var(--green-bg);border-color:#BBF7D0}
+      .cfg-empty{padding:16px;text-align:center;color:var(--grey);font-size:12px;line-height:1.5}
+      .cfg-list mark{background:#FEF08A;color:inherit;border-radius:2px;padding:0 1px}
       .u-act{display:flex;gap:6px;margin-top:8px}
       .u-act button{flex:1;min-height:34px;border-radius:9px;font-weight:850;font-size:11px;cursor:pointer;
         display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.4px solid var(--line);background:#fff;color:var(--ink2)}
@@ -286,6 +304,19 @@
         <div class="sheet-actions">
           <button class="btn cancel" id="asgCancel" type="button">Annulla</button>
           <button class="btn send" id="asgSend" type="button">Invia sollecito</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="backdrop" id="cfgSheet">
+      <div class="sheet" role="dialog" aria-modal="true">
+        <h3>Configurazione veicolo</h3>
+        <div class="who">Telaio <b id="cfgIdent">—</b> · ordine <b id="cfgOrder">—</b> <span id="cfgModel"></span></div>
+        <input type="search" id="cfgSearch" class="cfg-search" placeholder="Cerca variante o descrizione..." autocomplete="off" />
+        <div class="cfg-count" id="cfgCount"></div>
+        <div class="cfg-list" id="cfgList"></div>
+        <div class="sheet-actions" style="grid-template-columns:1fr;margin-top:12px">
+          <button class="btn cancel" id="cfgClose" type="button">Chiudi</button>
         </div>
       </div>
     </div>
@@ -493,11 +524,12 @@
           const stateTag=st?('<span class="tag '+(sk?"stato-"+sk:"")+'">'+esc(st)+"</span>"):"";
           const vWhen=it.verniciato_at?('<span class="tag when"><i class="fa-solid fa-paintbrush"></i> '+esc(ftime(it.verniciato_at))+"</span>"):"";
           const pWhen=it.preshipment_at?('<span class="tag when"><i class="fa-solid fa-truck"></i> '+esc(ftime(it.preshipment_at))+"</span>"):"";
+          const ordTag=it.plant_order?('<span class="tag ord">&#9881; '+esc(it.plant_order)+"</span>"):"";
           const canAssign=!isComplete(it);
           return '<div class="unit '+(prio&&!isComplete(it)?"prio":kind)+'" data-id="'+it.id+'">'+
             '<div class="u-top"><span class="u-pl">'+esc(pl(it))+'</span><span class="u-id">'+esc(ident(it))+(model?'<span class="u-model"> · '+esc(model)+'</span>':"")+'</span>'+
               '<button class="u-star '+(prio?"on":"")+'" data-act="star" type="button" aria-label="Priorità">&#9733;</button></div>'+
-            '<div class="u-meta">'+stTag+stateTag+(prio?'<span class="tag top">TOP</span>':"")+vWhen+pWhen+'</div>'+
+            '<div class="u-meta">'+stTag+stateTag+ordTag+(prio?'<span class="tag top">TOP</span>':"")+vWhen+pWhen+'</div>'+
             '<div class="u-act">'+
               '<button class="t '+(it.verniciato?"on":"")+'" data-act="verniciato" type="button"><i class="fa-solid fa-paintbrush"></i> Vern.</button>'+
               '<button class="t '+(it.preshipment?"on":"")+'" data-act="preshipment" type="button"><i class="fa-solid fa-truck"></i> Pre.</button>'+
@@ -577,10 +609,53 @@
         toast("Sollecito inviato: "+ident(it)+(op?(" → "+op):(" → squadra")));
       });
 
+      // ---- configurazione veicolo (plant order) ------------------------------
+      const cfgSheet=$("cfgSheet"); let cfgRows=[];
+      function hl(text,q){
+        const s=String(text==null?"":text);
+        if(!q)return esc(s);
+        const i=s.toLowerCase().indexOf(q.toLowerCase());
+        if(i<0)return esc(s);
+        return esc(s.slice(0,i))+"<mark>"+esc(s.slice(i,i+q.length))+"</mark>"+esc(s.slice(i+q.length));
+      }
+      function renderCfg(){
+        const raw=$("cfgSearch").value.trim(); const q=norm(raw);
+        const rows=q?cfgRows.filter(r=>norm(r.v).includes(q)||norm(r.d).includes(q)):cfgRows;
+        $("cfgCount").textContent=q?(rows.length+" di "+cfgRows.length+" varianti"):(cfgRows.length+" varianti");
+        if(!rows.length){$("cfgList").innerHTML='<div class="cfg-empty">Nessuna variante trovata per «'+esc(raw)+'».</div>';return;}
+        $("cfgList").innerHTML=rows.map(r=>'<div class="cfg-row'+(r.v==="0"?" base":"")+'">'+
+          '<span class="cfg-v">'+hl(r.v,raw)+'</span><span class="cfg-d">'+hl(r.d,raw)+'</span></div>').join("");
+      }
+      async function openConfig(id){
+        const it=items.find(x=>String(x.id)===String(id)); if(!it)return;
+        const order=String(it.plant_order||"").trim();
+        const model=techModels[String(it.tipo_tecnico||"")]||"";
+        $("cfgIdent").textContent=ident(it);
+        $("cfgOrder").textContent=order||"—";
+        $("cfgModel").textContent=model?("· "+model):"";
+        $("cfgSearch").value=""; cfgRows=[]; $("cfgCount").textContent="";
+        $("cfgList").innerHTML='<div class="cfg-empty">Caricamento…</div>';
+        cfgSheet.classList.add("show");
+        if(!order){$("cfgList").innerHTML='<div class="cfg-empty">Nessun plant order su questa unità.</div>';return;}
+        try{
+          const r=await fetch("/api/vehicle-config?order="+encodeURIComponent(order),{cache:"no-store"});
+          const b=await r.json();
+          if(!r.ok)throw new Error(b.error||"Errore");
+          cfgRows=b.rows||[];
+          if(!cfgRows.length){$("cfgList").innerHTML='<div class="cfg-empty">Nessuna configurazione trovata per l\'ordine '+esc(order)+'.</div>';return;}
+          renderCfg();
+        }catch(e){$("cfgList").innerHTML='<div class="cfg-empty">Configurazione non disponibile.<br>Riprova tra poco.</div>';}
+      }
+      $("cfgSearch").addEventListener("input",renderCfg);
+      $("cfgClose").addEventListener("click",()=>cfgSheet.classList.remove("show"));
+      cfgSheet.addEventListener("click",e=>{if(e.target===cfgSheet)cfgSheet.classList.remove("show")});
+
       // ---- lista click delegation --------------------------------------------
       els.list.addEventListener("click",e=>{
-        const b=e.target.closest("[data-act]"); if(!b)return;
-        const card=b.closest(".unit"); if(!card)return; const id=card.dataset.id;
+        const card=e.target.closest(".unit"); if(!card)return;
+        const b=e.target.closest("[data-act]");
+        if(!b)return openConfig(card.dataset.id); // click sul corpo card -> configurazione
+        const id=card.dataset.id;
         const act=b.dataset.act;
         if(act==="star")return togglePriority(id);
         if(act==="assign")return openAssign(id);
